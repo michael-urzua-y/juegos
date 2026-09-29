@@ -8,6 +8,7 @@
   import Toaster from '@/shared/ui/Toaster.svelte'
   import AppHeader from './AppHeader.svelte'
   import BottomNav from './BottomNav.svelte'
+  import NotificationBanner from './NotificationBanner.svelte'
   import { go, goTab, router } from './router.svelte'
 
   function repeat(s: Session) {
@@ -22,6 +23,9 @@
   <AppHeader />
 
   <main class="flex-1 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    {#if router.route === 'new' || router.route === 'active'}
+      <NotificationBanner />
+    {/if}
     {#key router.route}
       <div class="animate-pop">
         {#if router.route === 'new'}

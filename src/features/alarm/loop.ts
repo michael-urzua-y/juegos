@@ -4,11 +4,18 @@ import type { Session } from '@/features/sessions'
 import { ALARM } from '@/shared/config'
 import { stopSpeaking, vibrate } from '@/shared/platform/sound'
 import { ringOnce } from './announcer'
+import { clearAlarmNotification, notifyEnded } from './notify'
 
 let timer: ReturnType<typeof setInterval> | undefined
 let ringing: readonly Session[] = []
 
-const ring = () => ringOnce(() => ringing.map((s) => s.name))
+const isHidden = () => document.visibilityState === 'hidden'
+
+function ring(): void {
+  ringOnce(() => ringing.map((s) => s.name))
+  // Pantalla bloqueada o app en segundo plano: la notificación es lo único que vibra.
+  if (isHidden()) void notifyEnded(ringing)
+}
 
 export function syncAlarmLoop(alarms: readonly Session[]): void {
   const added = alarms.some((a) => !ringing.some((r) => r.id === a.id))
@@ -19,6 +26,7 @@ export function syncAlarmLoop(alarms: readonly Session[]): void {
     timer = undefined
     stopSpeaking()
     vibrate(0)
+    void clearAlarmNotification()
     return
   }
   // Una alarma nueva reinicia el ciclo para avisar de inmediato.
@@ -27,4 +35,11 @@ export function syncAlarmLoop(alarms: readonly Session[]): void {
     ring()
     timer = setInterval(ring, ALARM.repeatEveryMs)
   }
+}
+
+// Al volver a la app la alarma está en pantalla: la notificación ya no hace falta.
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (!isHidden()) void clearAlarmNotification()
+  })
 }
