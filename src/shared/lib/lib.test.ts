@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { formatDuration, joinNames } from './format'
-import { clampInt, cleanText } from './sanitize'
+import { clampInt, cleanText, foldText } from './sanitize'
+import { addMonths, compareMonths, dayKey, dayKeyToDate, isDayKey, monthGrid } from './time'
 
 describe('formatDuration', () => {
   it('muestra minutos y segundos, redondeando hacia arriba', () => {
@@ -35,5 +36,35 @@ describe('clampInt', () => {
     expect(clampInt('', 0, 10, 5)).toBe(5)
     expect(clampInt(NaN, 0, 10, 5)).toBe(5)
     expect(clampInt(null, 0, 10, 5)).toBe(5)
+  })
+})
+
+describe('calendario', () => {
+  it('arma el mes empezando el lunes', () => {
+    // 1 de septiembre de 2026 es martes → una casilla vacía
+    const cells = monthGrid({ year: 2026, month: 8 })
+    expect(cells[0]).toBeNull()
+    expect(cells[1]).toBe('2026-09-01')
+    expect(cells.at(-1)).toBe('2026-09-30')
+    expect(cells).toHaveLength(31)
+  })
+
+  it('suma meses cruzando el año y compara', () => {
+    expect(addMonths({ year: 2026, month: 11 }, 1)).toEqual({ year: 2027, month: 0 })
+    expect(addMonths({ year: 2026, month: 0 }, -1)).toEqual({ year: 2025, month: 11 })
+    expect(compareMonths({ year: 2026, month: 8 }, { year: 2026, month: 9 })).toBeLessThan(0)
+  })
+
+  it('convierte fechas a clave de día local', () => {
+    expect(dayKey(new Date('2026-09-29T23:59:00').getTime())).toBe('2026-09-29')
+    expect(dayKeyToDate('2026-02-03').getDate()).toBe(3)
+    expect(isDayKey('2026-02-03')).toBe(true)
+    expect(isDayKey('__proto__')).toBe(false)
+  })
+})
+
+describe('foldText', () => {
+  it('ignora mayúsculas y tildes', () => {
+    expect(foldText('Sofía')).toBe(foldText('sofia'))
   })
 })

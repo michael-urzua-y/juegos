@@ -178,18 +178,21 @@ export function parseSession(raw: unknown): Session | null {
   }
 }
 
-/** Valida lo leído y descarta turnos terminados más antiguos que el período de historial. */
-export function parseSessions(raw: unknown, now: number): Session[] {
+/** Valida lo leído: descarta entradas inválidas o repetidas. */
+export function parseSessions(raw: unknown): Session[] {
   if (!Array.isArray(raw)) return []
-  const cutoff = now - LIMITS.historyDays * DAY
   const seen = new Set<string>()
   const result: Session[] = []
   for (const item of raw) {
     const s = parseSession(item)
     if (!s || seen.has(s.id)) continue
-    if (s.status === 'done' && s.startedAt < cutoff) continue
     seen.add(s.id)
     result.push(s)
   }
   return result.slice(-LIMITS.maxStoredSessions)
+}
+
+/** Turnos terminados más antiguos que el período de detalle; se archivan como totales diarios. */
+export function isExpired(s: Session, now: number): boolean {
+  return s.status === 'done' && s.startedAt < now - LIMITS.historyDays * DAY
 }

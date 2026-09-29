@@ -10,6 +10,7 @@ import {
   extendSession,
   finishSession,
   isActive,
+  isExpired,
   parseSessions,
   pauseSession,
   resumeSession,
@@ -18,7 +19,7 @@ import {
 
 const STORAGE_KEY = 'sessions'
 
-export const sessions: Session[] = $state(parseSessions(readJSON(STORAGE_KEY), Date.now()))
+export const sessions: Session[] = $state(parseSessions(readJSON(STORAGE_KEY)))
 
 // ---------- Consultas ----------
 
@@ -61,10 +62,18 @@ export function removeSession(id: string): void {
   if (i >= 0) sessions.splice(i, 1)
 }
 
-export function clearHistory(): void {
-  const keep = sessions.filter(isActive)
-  sessions.splice(0, sessions.length, ...keep)
+/** Deja solo los turnos que cumplen `keep`. */
+function retain(keep: (s: Session) => boolean): Session[] {
+  const removed = sessions.filter((s) => !keep(s))
+  if (removed.length) sessions.splice(0, sessions.length, ...sessions.filter(keep))
+  return removed
 }
+
+/** Borra el detalle de todos los turnos terminados. */
+export const clearHistory = () => void retain(isActive)
+
+/** Quita y devuelve los turnos terminados que ya pasaron el período de detalle. */
+export const takeExpiredSessions = (now: number) => retain((s) => !isExpired(s, now))
 
 /** Avanza todos los turnos al instante `now` y devuelve los que terminaron o entraron al aviso. */
 export function advanceAll(now: number): { ended: Session[]; warned: Session[] } {

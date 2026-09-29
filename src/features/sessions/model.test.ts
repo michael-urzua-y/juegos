@@ -6,6 +6,7 @@ import {
   createSession,
   extendSession,
   finishSession,
+  isExpired,
   parseSessions,
   pauseSession,
   progress,
@@ -149,20 +150,20 @@ describe('parseSessions', () => {
       null,
       'texto',
     ]
-    const parsed = parseSessions(raw, T0)
+    const parsed = parseSessions(raw)
     expect(parsed.map((s) => s.id)).toEqual(['id-1', 'dup', 'xss'])
     // El texto se guarda tal cual: Svelte lo escapa al mostrarlo, nunca se interpreta como HTML.
     expect(parsed[2].name).toBe('<img src=x onerror=alert(1)>')
   })
 
-  it('elimina el historial antiguo pero conserva turnos activos', () => {
-    const old = { ...make(10), id: 'old', status: 'done', startedAt: T0 - 90 * DAY }
-    const oldActive = { ...make(10), id: 'old-active', startedAt: T0 - 90 * DAY }
-    expect(parseSessions([old, oldActive], T0).map((s) => s.id)).toEqual(['old-active'])
+  it('marca como vencidos solo los turnos terminados antiguos', () => {
+    expect(isExpired(make(10, { status: 'done', startedAt: T0 - 90 * DAY }), T0)).toBe(true)
+    expect(isExpired(make(10, { startedAt: T0 - 90 * DAY }), T0)).toBe(false)
+    expect(isExpired(make(10, { status: 'done' }), T0)).toBe(false)
   })
 
   it('devuelve lista vacía si no es un arreglo', () => {
-    expect(parseSessions(undefined, T0)).toEqual([])
-    expect(parseSessions({ a: 1 }, T0)).toEqual([])
+    expect(parseSessions(undefined)).toEqual([])
+    expect(parseSessions({ a: 1 })).toEqual([])
   })
 })

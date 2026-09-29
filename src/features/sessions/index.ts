@@ -1,4 +1,5 @@
-export { default as PlayView } from './PlayView.svelte'
+export { default as ActiveView } from './ActiveView.svelte'
+export { default as NewView } from './NewView.svelte'
 export { default as StatusBadge } from './components/StatusBadge.svelte'
 export { prefillDraft } from './draft.svelte'
 export { isActive, STATUS_LABEL, type Session, type SessionStatus } from './model'
@@ -14,4 +15,5 @@ export {
   persistSessions,
   removeSession,
   sessions,
+  takeExpiredSessions,
 } from './store.svelte'

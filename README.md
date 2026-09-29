@@ -6,15 +6,22 @@ Funciona sin internet, se instala desde Chrome y no necesita servidor de aplicac
 
 ## Funciones
 
-- **Turnos:** nombre, juego (opcional) y tiempo con botones rápidos (5, 10, 15, 20 min, configurables).
-- **Cuenta regresiva** por niño, con una barra que pasa de verde a amarillo (aviso previo) y luego a rojo.
-- **Alarma persistente:** pitido, vibración y voz ("Se acabó el tiempo de Mateo") cada 6 segundos, hasta presionar **Listo** o **+5 min**.
-- **Aviso previo** configurable (1, 2 o 3 minutos antes).
-- **Pausa, extensión y término anticipado** (con doble toque para evitar errores).
+La app tiene tres pestañas, pensadas para usarse con una mano:
+
+- **Nuevo:** nombre del niño, juego y tiempo con botones rápidos. Debajo muestra solo los **3 próximos en salir**, así la pantalla no crece con cada niño.
+- **Activos:** todos los niños en juego en una lista compacta, ordenada por quién sale primero. Tiene buscador (desde 6 niños, ignora tildes) y filtro por juego. Al tocar un niño se abren sus acciones: **+5 min**, **Pausa/Seguir** y **Terminar** (con doble toque).
+- **Admin:**
+  - **Caja del día:** calendario que parte en el día actual, con los días futuros bloqueados. Al elegir un día muestra lo recaudado, niños distintos, turnos, minutos, el desglose por juego y el detalle de turnos.
+  - **Juegos:** agregar y quitar.
+  - **Tiempos y precios:** agregar, quitar y cambiar los valores, además del botón de extensión.
+  - **Alarma y sonido:** voz, vibración, aviso previo, volumen y prueba de alarma.
+
+Además:
+
+- **Alarma persistente:** pantalla roja con pitido, vibración y voz ("Se acabó el tiempo de Mateo") cada 6 segundos, hasta presionar **Listo** o **+5 min**. Si terminan varios a la vez aparece **Listo todos**.
 - **Pantalla siempre encendida** (Screen Wake Lock) mientras haya niños jugando.
-- **Resumen de caja:** lo recaudado hoy, ayer o en los últimos 7 días, desglosado por juego, con botón para repetir un turno.
-- **Ajustes:** tiempos y precios, juegos, extensión, voz, vibración y volumen.
-- Los datos se guardan en el celular (localStorage) y el historial se conserva 60 días.
+- **Navegación con el botón atrás de Android:** cada pantalla tiene su dirección (`#/activos`, `#/admin/caja`…).
+- **Datos en el celular** (localStorage): el detalle de cada turno se guarda 60 días; después se conservan los **totales por día** para siempre, así el calendario sigue mostrando la caja sin llenar la memoria.
 
 ## Cómo funciona el tiempo
 
@@ -76,37 +83,39 @@ Organizada por funcionalidad (_features_). Cada módulo expone su API pública e
 ```
 src/
   main.ts                    Entrada
-  app/                       Composición: layout, navegación y arranque
-    bootstrap.svelte.ts      Conecta reloj → turnos → alarma, persistencia y Wake Lock
-    App.svelte · AppHeader.svelte · BottomNav.svelte · navigation.svelte.ts
+  app/                       Composición: layout, rutas y arranque
+    bootstrap.svelte.ts      Conecta reloj → turnos → alarma, archivo de caja, persistencia y Wake Lock
+    router.svelte.ts         Rutas con hash y pestañas
+    App.svelte · AppHeader.svelte · BottomNav.svelte
   features/
     sessions/                Turnos
       model.ts               Reglas de negocio puras (sin Svelte ni navegador) + validación
       store.svelte.ts        Estado reactivo y acciones
       draft.svelte.ts        Formulario compartido ("Repetir")
       tone.ts                Colores por estado
-      PlayView.svelte · components/
+      NewView.svelte · ActiveView.svelte · components/
     alarm/                   Alarma: sonido, voz, repetición, notificación y pantalla roja
-    summary/                 Resumen de caja (stats.ts puro + vista)
-    settings/                Ajustes (schema.ts validado + store + vista y editores)
+    reports/                 Caja: stats.ts puro, archivo de totales diarios y vista con calendario
+    settings/                Ajustes: schema.ts validado, store y editores
+    admin/                   Menú de administración: compone caja y ajustes
   shared/
     config/                  Constantes y límites de la app
     lib/                     Utilidades puras: tiempo, formato, validación, storage, reloj
     platform/                APIs del navegador: audio, Wake Lock, instalación, notificaciones
-    ui/                      Componentes reutilizables: Icon, IconButton, NumberField, Toggle…
+    ui/                      Componentes reutilizables: Calendar, MenuItem, Toaster, Icon, NumberField, Toggle…
 config/security.ts           Fuente única de CSP y cabeceras de seguridad
 docker/                      nginx y Caddy
 ```
 
 Reglas:
 
-- **Dependencias en una sola dirección:** `app → features → shared`. `shared` no conoce a nadie; entre _features_, solo a través de `index.ts` y sin ciclos (`alarm` y `summary` dependen de `sessions`; `sessions` de `settings`).
-- **Lógica pura separada del estado:** `model.ts`, `schema.ts` y `stats.ts` no dependen de Svelte ni del navegador y tienen tests.
+- **Dependencias en una sola dirección:** `app → features → shared`. `shared` no conoce a nadie; entre _features_, solo a través de `index.ts` y sin ciclos (`admin` → `reports`/`settings`; `alarm` y `reports` → `sessions` → `settings`).
+- **Lógica pura separada del estado:** `model.ts`, `schema.ts`, `stats.ts` y el calendario en `time.ts` no dependen de Svelte ni del navegador y tienen tests.
 - **Sin duplicación:** límites en `shared/config`, colores por estado en `tone.ts`, textos de voz en `alarm/messages.ts`, y cabeceras de seguridad generadas desde un único archivo.
 
 ## Seguridad
 
-- **Validación de entradas:** todo lo que escribe el usuario y todo lo que se lee de localStorage pasa por un parser (`parseSessions`, `parseSettings`) que descarta datos corruptos o manipulados, limita largos y rangos y elimina caracteres de control y de dirección de texto.
+- **Validación de entradas:** todo lo que escribe el usuario y todo lo que se lee de localStorage pasa por un parser (`parseSessions`, `parseSettings`, `parseArchive`) que descarta datos corruptos o manipulados, limita largos y rangos y elimina caracteres de control y de dirección de texto.
 - **Sin inyección de HTML:** Svelte escapa todo el texto. El único `{@html}` es para íconos fijos, nunca con datos del usuario.
 - **Content Security Policy estricta:** solo recursos del mismo origen, sin scripts ni estilos en línea, sin `eval`, sin iframes (`frame-ancestors 'none'`).
 - **Cabeceras HTTP:** `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` (solo se permite Wake Lock), COOP/CORP y HSTS. Se definen una vez en `config/security.ts` y el build las aplica a `index.html`, `_headers` (Cloudflare/Netlify) y nginx (Docker).

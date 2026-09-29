@@ -6,6 +6,7 @@
   import { startOfDay } from '@/shared/lib/time'
   import { requestNotificationPermission } from '@/shared/platform/notifications.svelte'
   import Icon from '@/shared/ui/Icon.svelte'
+  import { toast } from '@/shared/ui/toast.svelte'
   import { draft } from '../draft.svelte'
   import { sessions, startSession } from '../store.svelte'
 
@@ -26,6 +27,7 @@
       return
     }
     void requestNotificationPermission()
+    toast(`${draft.name.trim()} empezó · ${plan.minutes} min`)
     draft.name = ''
     input?.blur()
   }

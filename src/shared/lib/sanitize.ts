@@ -26,3 +26,10 @@ export const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
 
 export const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+
+/** Texto comparable: "Sofía" y "sofia" quedan iguales. Para búsquedas y agrupar nombres. */
+export const foldText = (text: string) =>
+  text
+    .toLocaleLowerCase('es')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
