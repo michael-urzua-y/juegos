@@ -67,6 +67,22 @@ DOMAIN=turnos.midominio.cl docker compose --profile https up -d --build
 
 El contenedor corre como usuario sin privilegios, con sistema de archivos de solo lectura, sin capacidades de Linux y con healthcheck en `/healthz`.
 
+## Despliegue en un VPS con nginx existente
+
+Para un servidor que ya tiene un nginx en Docker atendiendo los puertos 80/443 (como el VPS de `serviciohyh.cl`), la app se agrega sin tocar los otros sitios:
+
+- [deploy/docker-compose.prod.yml](deploy/docker-compose.prod.yml) levanta el contenedor `turnos-web` **sin puertos públicos**, dentro de la red del nginx (`PROXY_NETWORK`, por defecto `taller_default`).
+- [deploy/nginx/turnos.conf](deploy/nginx/turnos.conf) es el virtual host que se copia al `conf.d` del nginx. Resuelve el contenedor en cada petición: si `turnos-web` está detenido, solo este subdominio responde 502 y nginx sigue arrancando normalmente para los demás sitios.
+
+```bash
+git clone https://github.com/michael-urzua-y/juegos.git /opt/juegos
+cd /opt/juegos && docker compose -f deploy/docker-compose.prod.yml up -d --build
+cp deploy/nginx/turnos.conf /opt/taller/nginx/conf.d/
+docker exec hyh-nginx nginx -t && docker exec hyh-nginx nginx -s reload
+```
+
+Actualizar: `git pull && docker compose -f deploy/docker-compose.prod.yml up -d --build`.
+
 ## Despliegue sin Docker (Cloudflare Pages, gratis)
 
 1. Sube el repositorio a GitHub.

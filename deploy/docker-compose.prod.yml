@@ -1,0 +1,27 @@
+# Producción detrás de un nginx existente (sin puertos publicados).
+# El contenedor se une a la red del proxy y este lo alcanza por su nombre.
+#
+#   docker compose -f deploy/docker-compose.prod.yml up -d --build
+#
+# PROXY_NETWORK: red Docker del nginx existente (por defecto la del VPS actual).
+
+services:
+  web:
+    build: ..
+    image: turnos-inflables:latest
+    container_name: turnos-web
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK:-taller_default}
+    external: true
