@@ -4,10 +4,15 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import { ICON_BACKGROUND } from './pwa-assets.config.ts'
+import { ICON_BACKGROUND, iconUrl } from './pwa-assets.config.ts'
 import { securityHeaders } from './config/security.ts'
 
 export default defineConfig({
+  // URLs de los íconos con su huella, para usarlas desde el código (notificaciones)
+  define: {
+    __APP_ICON__: JSON.stringify(iconUrl('pwa', 192)),
+    __APP_BADGE__: JSON.stringify(iconUrl('pwa', 64)),
+  },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

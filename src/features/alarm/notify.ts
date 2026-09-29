@@ -15,8 +15,8 @@ export function notifyEnded(ended: readonly Session[]): Promise<void> {
     tag: TAG,
     renotify: true,
     requireInteraction: true,
-    icon: '/pwa-192x192.png',
-    badge: '/pwa-64x64.png',
+    icon: __APP_ICON__,
+    badge: __APP_BADGE__,
     vibrate: ALARM.vibration,
   })
 }
