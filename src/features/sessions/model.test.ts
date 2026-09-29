@@ -6,6 +6,7 @@ import {
   createSession,
   extendSession,
   finishSession,
+  isEndingSoon,
   isExpired,
   parseSessions,
   pauseSession,
@@ -116,6 +117,16 @@ describe('pausa y extensión', () => {
     finishSession(s, T0 + MINUTE)
     extendSession(s, T0 + 2 * MINUTE, { minutes: 5, price: 1000 }, WARN)
     expect(s.price).toBe(2000)
+  })
+})
+
+describe('isEndingSoon', () => {
+  it('incluye solo los que están en el último minuto o ya terminaron', () => {
+    const s = make(10)
+    expect(isEndingSoon(s, T0 + 8 * MINUTE, WARN)).toBe(false)
+    expect(isEndingSoon(s, T0 + 9 * MINUTE, WARN)).toBe(true)
+    expect(isEndingSoon(make(10, { status: 'alarm' }), T0, WARN)).toBe(true)
+    expect(isEndingSoon(make(10, { status: 'paused', pausedRemainingMs: 30_000 }), T0, WARN)).toBe(false)
   })
 })
 

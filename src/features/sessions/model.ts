@@ -82,6 +82,11 @@ export function progress(s: Session, now: number): number {
   return Math.min(1, Math.max(0, remainingMs(s, now) / minutesToMs(s.minutes)))
 }
 
+/** Está por terminar (dentro de `windowMs`) o ya terminó. Los pausados no cuentan. */
+export function isEndingSoon(s: Session, now: number, windowMs: number): boolean {
+  return s.status === 'alarm' || (s.status === 'running' && remainingMs(s, now) <= windowMs)
+}
+
 export function sessionTone(s: Session, now: number, warnMs: number): Tone {
   if (s.status === 'running') return remainingMs(s, now) <= warnMs ? 'warn' : 'ok'
   return s.status === 'alarm' ? 'alarm' : s.status

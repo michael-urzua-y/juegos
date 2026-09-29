@@ -3,6 +3,7 @@
 import { settings, warnThresholdMs, type Plan } from '@/features/settings'
 import { newId } from '@/shared/lib/id'
 import { readJSON, writeJSON } from '@/shared/lib/storage'
+import { MINUTE } from '@/shared/lib/time'
 import {
   advanceSession,
   compareActive,
@@ -10,6 +11,7 @@ import {
   extendSession,
   finishSession,
   isActive,
+  isEndingSoon,
   isExpired,
   parseSessions,
   pauseSession,
@@ -24,6 +26,13 @@ export const sessions: Session[] = $state(parseSessions(readJSON(STORAGE_KEY)))
 // ---------- Consultas ----------
 
 export const activeSessions = () => sessions.filter(isActive).sort(compareActive)
+
+/** Ventana de "por terminar": la del aviso previo, o 1 minuto si el aviso está desactivado. */
+const endingWindowMs = () => warnThresholdMs() || MINUTE
+
+/** Niños por terminar, para la vista principal. Depende de la hora: usar con clock.now. */
+export const endingSoonSessions = (now: number) =>
+  activeSessions().filter((s) => isEndingSoon(s, now, endingWindowMs()))
 export const alarmSessions = () => sessions.filter((s) => s.status === 'alarm')
 export const hasActiveSessions = () => sessions.some(isActive)
 
