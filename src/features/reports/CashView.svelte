@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { removeSession, StatusBadge, type Session } from '@/features/sessions'
+  import { removeSession, type Session } from '@/features/sessions'
   import { clock } from '@/shared/lib/clock.svelte'
   import { formatClock, formatLongDate, formatMoney, plural } from '@/shared/lib/format'
   import { dayKey, dayKeyToDate } from '@/shared/lib/time'
@@ -7,7 +7,7 @@
   import Icon from '@/shared/ui/Icon.svelte'
   import IconButton from '@/shared/ui/IconButton.svelte'
   import SectionTitle from '@/shared/ui/SectionTitle.svelte'
-  import { daysWithData, isArchived, sessionsOfDay, statsOfDay } from './store.svelte'
+  import { daysWithData, inPlay, isArchived, sessionsOfDay, statsOfDay } from './store.svelte'
 
   let { onRepeat }: { onRepeat: (s: Session) => void } = $props()
 
@@ -18,6 +18,7 @@
   const detail = $derived(sessionsOfDay(selected))
   const maxAmount = $derived(Math.max(1, ...stats.byGame.map((g) => g.amount)))
   const label = $derived(selected === today ? 'Hoy' : formatLongDate(dayKeyToDate(selected)))
+  const playing = $derived(inPlay())
 
   function onRemove(s: Session) {
     if (confirm(`¿Eliminar el turno de ${s.name}? Se descontará de la caja.`)) removeSession(s.id)
@@ -53,6 +54,15 @@
     </div>
   </div>
 
+  {#if selected === today && playing.count}
+    <p
+      class="flex items-center gap-2 rounded-2xl bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+    >
+      <Icon name="timer" class="size-5 shrink-0" />
+      {plural(playing.count, 'niño jugando', 'niños jugando')} ahora · {formatMoney(playing.amount)} se sumarán al terminar
+    </p>
+  {/if}
+
   {#if stats.byGame.length}
     <div class="card space-y-3">
       <SectionTitle class="mb-0">Por juego</SectionTitle>
@@ -72,7 +82,7 @@
 
   {#if detail.length}
     <div>
-      <SectionTitle class="mb-2 px-1">Turnos del día</SectionTitle>
+      <SectionTitle class="mb-2 px-1">Turnos terminados</SectionTitle>
       <ul class="card divide-y divide-zinc-100 p-0! dark:divide-zinc-800">
         {#each detail as s (s.id)}
           <li class="flex items-center gap-3 py-3 pr-2 pl-4">
@@ -80,21 +90,20 @@
               {formatClock(s.startedAt)}
             </span>
             <div class="min-w-0 flex-1">
-              <p class="flex items-center gap-2 truncate font-bold">
-                {s.name}
-                {#if s.status !== 'done'}<StatusBadge status={s.status} />{/if}
-              </p>
+              <p class="truncate font-bold">{s.name}</p>
               <p class="truncate text-sm text-zinc-500">
                 {s.game ? `${s.game} · ` : ''}{s.minutes} min{s.price ? ` · ${formatMoney(s.price)}` : ''}
               </p>
             </div>
             {#if selected === today}
-              <IconButton
-                icon="repeat"
-                label="Repetir turno de {s.name}"
+              <button
+                type="button"
+                class="flex h-9 shrink-0 items-center gap-1 rounded-xl bg-orange-100 px-3 text-sm font-bold text-orange-700 active:scale-95 dark:bg-orange-950 dark:text-orange-300"
+                aria-label="Repetir turno de {s.name}"
                 onclick={() => onRepeat(s)}
-                class="text-orange-600"
-              />
+              >
+                <Icon name="repeat" class="size-4" />Repetir
+              </button>
             {/if}
             <IconButton icon="trash" label="Eliminar turno de {s.name}" onclick={() => onRemove(s)} />
           </li>
@@ -108,7 +117,7 @@
   {:else}
     <div class="py-6 text-center text-zinc-400">
       <Icon name="calendar" class="mx-auto size-10 opacity-50" />
-      <p class="mt-2 font-semibold">Sin turnos este día</p>
+      <p class="mt-2 font-semibold">Sin turnos terminados este día</p>
     </div>
   {/if}
 </section>
