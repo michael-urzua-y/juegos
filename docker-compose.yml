@@ -1,0 +1,42 @@
+# Uso:
+#   docker compose up -d --build                       → http://localhost:8080
+#   DOMAIN=turnos.midominio.cl docker compose --profile https up -d --build
+#                                                      → https con certificado automático (Caddy)
+
+services:
+  web:
+    build: .
+    image: turnos-inflables:latest
+    restart: unless-stopped
+    ports:
+      - '${PORT:-8080}:8080'
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  # HTTPS es obligatorio para instalar la PWA en el celular (excepto en localhost).
+  # Requiere un dominio apuntando a este servidor y los puertos 80/443 abiertos.
+  caddy:
+    image: caddy:2-alpine
+    profiles: [https]
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      # Sin dominio usa localhost con un certificado local de Caddy.
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
