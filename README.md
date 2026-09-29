@@ -92,6 +92,15 @@ Actualizar: `git pull && docker compose -f deploy/docker-compose.prod.yml up -d 
 
 Netlify funciona igual. En ambos, las cabeceras de seguridad se aplican desde `dist/_headers`.
 
+## Logo e íconos
+
+El ícono de la app es el logo de **Monay Solutions** (colibrí en el naranja de la app sobre fondo oscuro). Se genera con [branding/build-logo.py](branding/build-logo.py) a partir de `branding/monay-original.png`:
+
+```bash
+python3 branding/build-logo.py   # crea branding/monay-solutions-logo.png y public/icon.png
+npm run build                    # genera desde public/icon.png los íconos de la PWA
+```
+
 ## Arquitectura
 
 Organizada por funcionalidad (_features_). Cada módulo expone su API pública en `index.ts` y los demás importan solo desde ahí.

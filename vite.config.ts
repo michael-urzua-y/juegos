@@ -4,6 +4,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { ICON_BACKGROUND } from './pwa-assets.config.ts'
 import { securityHeaders } from './config/security.ts'
 
 export default defineConfig({
@@ -16,7 +17,7 @@ export default defineConfig({
     securityHeaders(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Genera los íconos PNG (192, 512, maskable, apple) desde public/icon.svg
+      // Genera los íconos PNG (192, 512, maskable, apple) desde public/icon.png
       pwaAssets: { config: true },
       manifest: {
         name: 'Turnos Inflables',
@@ -28,10 +29,13 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         theme_color: '#f97316',
-        background_color: '#fff7ed',
+        // Fondo de la pantalla de inicio: el mismo del ícono, para que el logo se vea continuo
+        background_color: ICON_BACKGROUND,
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        // La imagen fuente de los íconos (1024 px) no hace falta en el celular
+        globIgnores: ['icon.png'],
         // Maneja el toque en la notificación para volver a la app
         importScripts: ['sw-notify.js'],
       },
