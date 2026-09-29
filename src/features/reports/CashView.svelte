@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { removeSession, type Session } from '@/features/sessions'
+  import { displayName, NoteTag, removeSession, type Session } from '@/features/sessions'
   import { clock } from '@/shared/lib/clock.svelte'
   import { formatClock, formatLongDate, formatMoney, plural } from '@/shared/lib/format'
   import { dayKey, dayKeyToDate } from '@/shared/lib/time'
@@ -21,7 +21,7 @@
   const playing = $derived(inPlay())
 
   function onRemove(s: Session) {
-    if (confirm(`¿Eliminar el turno de ${s.name}? Se descontará de la caja.`)) removeSession(s.id)
+    if (confirm(`¿Eliminar el turno de ${displayName(s)}? Se descontará de la caja.`)) removeSession(s.id)
   }
 </script>
 
@@ -90,7 +90,10 @@
               {formatClock(s.startedAt)}
             </span>
             <div class="min-w-0 flex-1">
-              <p class="truncate font-bold">{s.name}</p>
+              <p class="flex min-w-0 items-center gap-2">
+                <span class="truncate font-bold">{s.name}</span>
+                <NoteTag note={s.note} />
+              </p>
               <p class="truncate text-sm text-zinc-500">
                 {s.game ? `${s.game} · ` : ''}{s.minutes} min{s.price ? ` · ${formatMoney(s.price)}` : ''}
               </p>

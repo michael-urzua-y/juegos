@@ -1,6 +1,6 @@
 // Repite la alarma hasta que se confirmen todos los turnos terminados.
 
-import type { Session } from '@/features/sessions'
+import { spokenName, type Session } from '@/features/sessions'
 import { ALARM } from '@/shared/config'
 import { stopSpeaking, vibrate } from '@/shared/platform/sound'
 import { ringOnce } from './announcer'
@@ -12,7 +12,7 @@ let ringing: readonly Session[] = []
 const isHidden = () => document.visibilityState === 'hidden'
 
 function ring(): void {
-  ringOnce(() => ringing.map((s) => s.name))
+  ringOnce(() => ringing.map(spokenName))
   // Pantalla bloqueada o app en segundo plano: la notificación es lo único que vibra.
   if (isHidden()) void notifyEnded(ringing)
 }

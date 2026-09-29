@@ -4,6 +4,7 @@ export const STORAGE_PREFIX = 'turnos:v1:'
 
 export const LIMITS = {
   nameMaxLength: 40,
+  noteMaxLength: 40,
   gameMaxLength: 30,
   maxGames: 20,
   maxPlans: 8,

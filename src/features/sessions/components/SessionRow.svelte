@@ -4,6 +4,7 @@
   import { formatClock, formatDuration } from '@/shared/lib/format'
   import { progress, remainingMs, sessionTone, type Session } from '../model'
   import { TONE_STYLES } from '../tone'
+  import NoteTag from './NoteTag.svelte'
   import SessionActions from './SessionActions.svelte'
 
   let { s, expanded, onToggle }: { s: Session; expanded: boolean; onToggle: () => void } = $props()
@@ -29,7 +30,10 @@
   >
     <span class={['size-2.5 shrink-0 rounded-full', style.bar, tone === 'alarm' && 'animate-ping']}></span>
     <span class="min-w-0 flex-1">
-      <span class="block truncate text-lg leading-tight font-black">{s.name}</span>
+      <span class="flex min-w-0 items-center gap-2">
+        <span class="truncate text-lg leading-tight font-black">{s.name}</span>
+        <NoteTag note={s.note} />
+      </span>
       <span class="block truncate text-xs text-zinc-500 dark:text-zinc-400">
         {s.game ? `${s.game} · ` : ''}{detail}
       </span>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { settings } from '@/features/settings'
-  import { alarmSessions, extend, finish, finishAllAlarms } from '@/features/sessions'
+  import { alarmSessions, extend, finish, finishAllAlarms, NoteTag } from '@/features/sessions'
   import { clock } from '@/shared/lib/clock.svelte'
   import { formatDuration } from '@/shared/lib/format'
   import Icon from '@/shared/ui/Icon.svelte'
@@ -29,7 +29,12 @@
               <p class="truncate text-4xl font-black">{s.name}</p>
               <p class="shrink-0 text-lg font-bold tabular-nums opacity-90">+{formatDuration(clock.now - s.endsAt)}</p>
             </div>
-            {#if s.game}<p class="text-lg font-semibold opacity-90">{s.game}</p>{/if}
+            {#if s.note || s.game}
+              <p class="flex flex-wrap items-center gap-2 text-lg font-semibold">
+                <NoteTag note={s.note} class="bg-white px-3 py-1 text-base text-red-700" />
+                {#if s.game}<span class="opacity-90">{s.game}</span>{/if}
+              </p>
+            {/if}
 
             <div class="mt-4 grid grid-cols-2 gap-3">
               <button type="button" class={[bigButton, 'bg-white/20 font-bold']} onclick={() => extend(s.id)}>

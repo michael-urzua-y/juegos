@@ -8,6 +8,7 @@
   import Icon from '@/shared/ui/Icon.svelte'
   import { toast } from '@/shared/ui/toast.svelte'
   import { draft } from '../draft.svelte'
+  import { displayName } from '../model'
   import { sessions, startSession } from '../store.svelte'
 
   let input: HTMLInputElement | undefined = $state()
@@ -22,13 +23,14 @@
 
   function submit(e: SubmitEvent) {
     e.preventDefault()
-    if (!plan || !startSession(draft.name, draft.game, plan)) {
+    if (!plan || !startSession({ name: draft.name, note: draft.note, game: draft.game, plan })) {
       input?.focus()
       return
     }
     void requestNotificationPermission()
-    toast(`${draft.name.trim()} empezó · ${plan.minutes} min`)
+    toast(`${displayName({ name: draft.name.trim(), note: draft.note.trim() })} empezó · ${plan.minutes} min`)
     draft.name = ''
+    draft.note = ''
     input?.blur()
   }
 </script>
@@ -45,6 +47,15 @@
     enterkeyhint="go"
     list="recent-names"
     aria-label="Nombre del niño"
+  />
+  <input
+    bind:value={draft.note}
+    class="field -mt-2"
+    placeholder="Nota (opcional): polera roja…"
+    maxlength={LIMITS.noteMaxLength}
+    autocomplete="off"
+    enterkeyhint="go"
+    aria-label="Nota para identificar al niño"
   />
   <datalist id="recent-names">
     {#each recentNames as n (n)}<option value={n}></option>{/each}

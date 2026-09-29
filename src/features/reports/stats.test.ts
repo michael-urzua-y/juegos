@@ -5,9 +5,18 @@ import { groupByDay, mergeStats, NO_GAME, parseArchive, summarize } from './stat
 
 const NOW = new Date('2026-09-29T18:00:00').getTime()
 
-const s = (id: string, startedAt: number, game: string, price: number, name = id, minutes = 10): Session => ({
+const s = (
+  id: string,
+  startedAt: number,
+  game: string,
+  price: number,
+  name = id,
+  minutes = 10,
+  note = '',
+): Session => ({
   id,
   name,
+  note,
   game,
   minutes,
   price,
@@ -32,6 +41,15 @@ describe('summarize', () => {
     expect(r.sessions).toBe(3)
     expect(r.minutes).toBe(30)
     expect(r.kids).toBe(2) // "Mateo" y "mateo" son el mismo niño
+  })
+
+  it('la nota distingue a niños con el mismo nombre', () => {
+    const twins = [
+      s('x', NOW, '', 1000, 'Mateo', 10, 'polera roja'),
+      s('y', NOW, '', 1000, 'Mateo', 10, 'polera azul'),
+      s('z', NOW, '', 1000, 'mateo', 10, 'polera roja'),
+    ]
+    expect(summarize(twins).kids).toBe(2)
   })
 
   it('agrupa por juego ordenado por monto', () => {

@@ -12,6 +12,8 @@ export type SessionStatus = 'running' | 'paused' | 'alarm' | 'done'
 export interface Session {
   id: string
   name: string
+  /** Seña para distinguir niños con el mismo nombre ("polera roja"). Opcional. */
+  note: string
   game: string
   /** Minutos contratados en total (incluye extensiones). */
   minutes: number
@@ -39,6 +41,7 @@ export const STATUS_LABEL: Record<SessionStatus, string> = {
 
 export interface NewSessionInput {
   name: string
+  note?: string
   game: string
   plan: Plan
 }
@@ -51,6 +54,7 @@ export function createSession(input: NewSessionInput, now: number, warnMs: numbe
   return {
     id,
     name,
+    note: cleanText(input.note, LIMITS.noteMaxLength),
     game: cleanText(input.game, LIMITS.gameMaxLength),
     minutes,
     price: clampInt(input.plan.price, 0, LIMITS.priceMax, 0),
@@ -64,6 +68,14 @@ export function createSession(input: NewSessionInput, now: number, warnMs: numbe
 }
 
 export const isActive = (s: Session) => s.status !== 'done'
+
+type Kid = Pick<Session, 'name' | 'note'>
+
+/** "Mateo (polera roja)": nombre con su nota, para textos en pantalla. */
+export const displayName = ({ name, note }: Kid) => (note ? `${name} (${note})` : name)
+
+/** "Mateo, polera roja": para decirlo en voz alta. */
+export const spokenName = ({ name, note }: Kid) => (note ? `${name}, ${note}` : name)
 
 export function remainingMs(s: Session, now: number): number {
   switch (s.status) {
@@ -171,6 +183,7 @@ export function parseSession(raw: unknown): Session | null {
   return {
     id,
     name,
+    note: cleanText(raw.note, LIMITS.noteMaxLength),
     game: cleanText(raw.game, LIMITS.gameMaxLength),
     minutes,
     price: clampInt(raw.price, 0, LIMITS.priceMax * 10, 0),

@@ -4,6 +4,7 @@ import {
   advanceSession,
   compareActive,
   createSession,
+  displayName,
   extendSession,
   finishSession,
   isEndingSoon,
@@ -14,6 +15,7 @@ import {
   remainingMs,
   resumeSession,
   sessionTone,
+  spokenName,
   type Session,
 } from './model'
 
@@ -39,6 +41,14 @@ describe('createSession', () => {
     expect(createSession({ name: '  Ana\u0000 ‮ María  ', game: '', plan }, T0, WARN, 'x')?.name).toBe('Ana María')
     expect(createSession({ name: '   ', game: '', plan }, T0, WARN, 'x')).toBeNull()
     expect(createSession({ name: 'a'.repeat(200), game: '', plan }, T0, WARN, 'x')?.name).toHaveLength(40)
+  })
+
+  it('guarda la nota limpia y opcional', () => {
+    const plan = { minutes: 5, price: 0 }
+    expect(createSession({ name: 'Mateo', note: '  polera\u202e  roja ', game: '', plan }, T0, WARN, 'x')?.note).toBe(
+      'polera roja',
+    )
+    expect(createSession({ name: 'Mateo', game: '', plan }, T0, WARN, 'x')?.note).toBe('')
   })
 
   it('rechaza minutos inválidos y limita precios', () => {
@@ -147,7 +157,20 @@ describe('presentación', () => {
   })
 })
 
+describe('nombres con nota', () => {
+  it('arma el texto en pantalla y para la voz', () => {
+    expect(displayName({ name: 'Mateo', note: 'polera roja' })).toBe('Mateo (polera roja)')
+    expect(spokenName({ name: 'Mateo', note: 'polera roja' })).toBe('Mateo, polera roja')
+    expect(displayName({ name: 'Mateo', note: '' })).toBe('Mateo')
+  })
+})
+
 describe('parseSessions', () => {
+  it('carga turnos guardados antes de existir la nota', () => {
+    const { note: _omit, ...old } = make(10)
+    expect(parseSessions([old])[0].note).toBe('')
+  })
+
   it('descarta datos corruptos o manipulados', () => {
     const good = make(10)
     const raw = [

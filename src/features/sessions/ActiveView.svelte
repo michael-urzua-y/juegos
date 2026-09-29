@@ -16,7 +16,9 @@
   const active = $derived(activeSessions())
   const games = $derived([...new Set(active.map((s) => s.game).filter(Boolean))].sort())
   const filtered = $derived(
-    active.filter((s) => (!game || s.game === game) && (!query || foldText(s.name).includes(foldText(query)))),
+    active.filter(
+      (s) => (!game || s.game === game) && (!query || foldText(`${s.name} ${s.note}`).includes(foldText(query))),
+    ),
   )
   const count = (status: string) => active.filter((s) => s.status === status).length
 
@@ -58,7 +60,7 @@
         <input
           class="field bg-white pl-11 dark:bg-zinc-900"
           type="search"
-          placeholder="Buscar niño"
+          placeholder="Buscar por nombre o nota"
           bind:value={query}
         />
       </label>

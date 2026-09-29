@@ -1,6 +1,6 @@
 // Estado reactivo de los turnos. La lógica vive en model.ts; aquí solo se aplica y se guarda.
 
-import { settings, warnThresholdMs, type Plan } from '@/features/settings'
+import { settings, warnThresholdMs } from '@/features/settings'
 import { newId } from '@/shared/lib/id'
 import { readJSON, writeJSON } from '@/shared/lib/storage'
 import { MINUTE } from '@/shared/lib/time'
@@ -16,6 +16,7 @@ import {
   parseSessions,
   pauseSession,
   resumeSession,
+  type NewSessionInput,
   type Session,
 } from './model'
 
@@ -48,8 +49,8 @@ const withSession =
     if (s) fn(s, Date.now())
   }
 
-export function startSession(name: string, game: string, plan: Plan): boolean {
-  const session = createSession({ name, game, plan }, Date.now(), warnThresholdMs(), newId())
+export function startSession(input: NewSessionInput): boolean {
+  const session = createSession(input, Date.now(), warnThresholdMs(), newId())
   if (session) sessions.push(session)
   return session !== null
 }

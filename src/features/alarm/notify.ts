@@ -1,4 +1,4 @@
-import type { Session } from '@/features/sessions'
+import { displayName, type Session } from '@/features/sessions'
 import { ALARM } from '@/shared/config'
 import { joinNames } from '@/shared/lib/format'
 import { closeNotifications, showNotification } from '@/shared/platform/notifications.svelte'
@@ -11,7 +11,7 @@ const TAG = 'alarma'
  */
 export function notifyEnded(ended: readonly Session[]): Promise<void> {
   return showNotification('⏰ Se acabó el tiempo', {
-    body: joinNames(ended.map((s) => (s.game ? `${s.name} (${s.game})` : s.name))),
+    body: joinNames(ended.map((s) => (s.game ? `${displayName(s)} · ${s.game}` : displayName(s)))),
     tag: TAG,
     renotify: true,
     requireInteraction: true,

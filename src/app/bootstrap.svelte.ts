@@ -4,7 +4,14 @@
 import { untrack } from 'svelte'
 import { announceWarning, syncAlarmLoop } from '@/features/alarm'
 import { archiveSessions, persistArchive } from '@/features/reports'
-import { advanceAll, alarmSessions, hasActiveSessions, persistSessions, takeExpiredSessions } from '@/features/sessions'
+import {
+  advanceAll,
+  alarmSessions,
+  hasActiveSessions,
+  persistSessions,
+  spokenName,
+  takeExpiredSessions,
+} from '@/features/sessions'
 import { persistSettings } from '@/features/settings'
 import { startClock } from '@/shared/lib/clock.svelte'
 import { setWakeLock } from '@/shared/platform/wakelock.svelte'
@@ -27,6 +34,6 @@ export function bootstrap(): void {
   startClock((now) => {
     // Los turnos que terminan pasan a 'alarm' y el ciclo de alarma se encarga del aviso.
     const { warned } = advanceAll(now)
-    if (warned.length) announceWarning(warned.map((s) => s.name))
+    if (warned.length) announceWarning(warned.map(spokenName))
   })
 }
