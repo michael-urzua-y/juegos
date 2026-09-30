@@ -22,7 +22,7 @@
   import AppHeader from './AppHeader.svelte'
   import BottomNav from './BottomNav.svelte'
   import NotificationBanner from './NotificationBanner.svelte'
-  import { currentRoute, go, goTab, router } from './router.svelte'
+  import { ADMIN_ROUTES, currentRoute, go, goTab, router } from './router.svelte'
   import SubscriptionBanner from './SubscriptionBanner.svelte'
 
   const user = $derived(auth.me?.user)
@@ -37,9 +37,11 @@
     void ensureConnected()
   })
 
-  // El panel de clientes es solo para administradores (el servidor también lo exige).
+  // El administrador solo ve su cuenta y el panel de clientes; los clientes no ven el panel
+  // (el servidor también lo exige).
   $effect(() => {
-    if (router.route === 'admin/clients' && user && !isAdmin()) goTab('admin')
+    if (!user) return
+    if (isAdmin() ? !ADMIN_ROUTES.includes(router.route) : router.route === 'admin/clients') goTab('admin')
   })
 
   function repeat(s: Session) {
@@ -114,10 +116,10 @@
       {/key}
     </main>
 
-    <BottomNav />
+    {#if !isAdmin()}<BottomNav />{/if}
   </div>
 
-  <AlarmOverlay />
+  {#if !isAdmin()}<AlarmOverlay />{/if}
 {/if}
 
 <Toaster />

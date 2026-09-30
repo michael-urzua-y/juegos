@@ -35,6 +35,9 @@ export const TABS: readonly { id: Tab; label: string; icon: IconName }[] = [
 ]
 
 const HOME: RouteId = 'new'
+
+/** El administrador solo gestiona clientes y su cuenta; no usa las funciones de turnos. */
+export const ADMIN_ROUTES: readonly RouteId[] = ['admin', 'admin/account', 'admin/clients']
 const ids = Object.keys(ROUTES) as RouteId[]
 
 function fromLocation(): RouteId {

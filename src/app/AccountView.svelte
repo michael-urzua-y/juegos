@@ -1,14 +1,13 @@
 <script lang="ts">
   import { auth, ChangePasswordForm, subscriptionBadge, SubscriptionPill, SupportLink } from '@/features/auth'
   import { syncState } from '@/features/sync'
-  import { ApiError } from '@/shared/lib/api'
   import { clock } from '@/shared/lib/clock.svelte'
   import { formatClock, formatLongDate } from '@/shared/lib/format'
   import { dayKey, dayKeyToDate } from '@/shared/lib/time'
   import Icon from '@/shared/ui/Icon.svelte'
   import SectionTitle from '@/shared/ui/SectionTitle.svelte'
   import { toast } from '@/shared/ui/toast.svelte'
-  import { signOut, updatePassword } from './account.svelte'
+  import { confirmSignOut, updatePassword } from './account.svelte'
 
   const me = $derived(auth.me)
   const badge = $derived(me ? subscriptionBadge(me.user, dayKey(clock.now)) : null)
@@ -37,14 +36,9 @@
   }
 
   async function onSignOut() {
-    if (!confirm('¿Cerrar sesión en este dispositivo? Podrás entrar desde otro.')) return
     leaving = true
     try {
-      await signOut()
-    } catch (e) {
-      const msg = e instanceof ApiError ? e.message : 'No se pudo cerrar sesión.'
-      if (confirm(`${msg}\n\n¿Cerrar sesión igual? Los cambios sin guardar se perderán.`))
-        await signOut({ force: true })
+      await confirmSignOut()
     } finally {
       leaving = false
     }

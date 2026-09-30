@@ -3,6 +3,7 @@
   import { installPrompt, promptInstall } from '@/shared/platform/install.svelte'
   import { wakeLock } from '@/shared/platform/wakelock.svelte'
   import Icon from '@/shared/ui/Icon.svelte'
+  import { confirmSignOut } from './account.svelte'
   import { back, currentRoute } from './router.svelte'
 
   const route = $derived(currentRoute())
@@ -50,5 +51,14 @@
         <Icon name="download" />
       </button>
     {/if}
+    <button
+      type="button"
+      class="grid size-10 place-items-center rounded-full text-zinc-500 active:bg-black/5 dark:text-zinc-400 dark:active:bg-white/10"
+      onclick={confirmSignOut}
+      aria-label="Cerrar sesión"
+      title="Cerrar sesión"
+    >
+      <Icon name="logOut" />
+    </button>
   </div>
 </header>

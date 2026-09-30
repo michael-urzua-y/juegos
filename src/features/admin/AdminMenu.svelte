@@ -46,7 +46,7 @@
 </script>
 
 <section class="space-y-5">
-  {#if installPrompt.available}
+  {#if installPrompt.available && !isAdmin()}
     <button
       type="button"
       class="card flex w-full items-center gap-3 bg-orange-500! text-left text-white ring-0!"
@@ -87,53 +87,56 @@
     </div>
   {/if}
 
-  <div>
-    <SectionTitle class="mb-2 px-1">Negocio</SectionTitle>
-    <div class="card divide-y divide-zinc-100 overflow-hidden p-0! dark:divide-zinc-800">
-      <MenuItem
-        icon="coins"
-        color="bg-emerald-500"
-        label="Caja del día"
-        detail="Hoy: {formatMoney(today.total)} · {plural(today.kids, 'niño', 'niños')}"
-        onclick={() => onOpen('cash')}
-      />
+  <!-- Funciones del negocio: solo clientes (el administrador gestiona suscripciones) -->
+  {#if !isAdmin()}
+    <div>
+      <SectionTitle class="mb-2 px-1">Negocio</SectionTitle>
+      <div class="card divide-y divide-zinc-100 overflow-hidden p-0! dark:divide-zinc-800">
+        <MenuItem
+          icon="coins"
+          color="bg-emerald-500"
+          label="Caja del día"
+          detail="Hoy: {formatMoney(today.total)} · {plural(today.kids, 'niño', 'niños')}"
+          onclick={() => onOpen('cash')}
+        />
+      </div>
     </div>
-  </div>
 
-  <div>
-    <SectionTitle class="mb-2 px-1">Configuración</SectionTitle>
-    <div class="card divide-y divide-zinc-100 overflow-hidden p-0! dark:divide-zinc-800">
-      <MenuItem
-        icon="tent"
-        label="Juegos"
-        detail={settings.games.length ? settings.games.join(', ') : 'Sin juegos'}
-        onclick={() => onOpen('games')}
-      />
-      <MenuItem
-        icon="timer"
-        color="bg-sky-500"
-        label="Tiempos y precios"
-        detail={activePlans()
-          .map((p) => `${p.minutes}′ ${formatMoney(p.price)}`)
-          .join(' · ')}
-        onclick={() => onOpen('plans')}
-      />
-      <MenuItem
-        icon="bell"
-        color="bg-violet-500"
-        label="Alarma y sonido"
-        detail={alarmDetail}
-        onclick={() => onOpen('alarm')}
-      />
+    <div>
+      <SectionTitle class="mb-2 px-1">Configuración</SectionTitle>
+      <div class="card divide-y divide-zinc-100 overflow-hidden p-0! dark:divide-zinc-800">
+        <MenuItem
+          icon="tent"
+          label="Juegos"
+          detail={settings.games.length ? settings.games.join(', ') : 'Sin juegos'}
+          onclick={() => onOpen('games')}
+        />
+        <MenuItem
+          icon="timer"
+          color="bg-sky-500"
+          label="Tiempos y precios"
+          detail={activePlans()
+            .map((p) => `${p.minutes}′ ${formatMoney(p.price)}`)
+            .join(' · ')}
+          onclick={() => onOpen('plans')}
+        />
+        <MenuItem
+          icon="bell"
+          color="bg-violet-500"
+          label="Alarma y sonido"
+          detail={alarmDetail}
+          onclick={() => onOpen('alarm')}
+        />
+      </div>
     </div>
-  </div>
 
-  <div class="space-y-1 pt-2 text-center">
-    <button type="button" class="block w-full py-2 text-sm font-semibold text-zinc-400" onclick={onReset}>
-      Restaurar ajustes de fábrica
-    </button>
-    <button type="button" class="block w-full py-2 text-sm font-semibold text-red-500" onclick={onClearHistory}>
-      Borrar historial de caja
-    </button>
-  </div>
+    <div class="space-y-1 pt-2 text-center">
+      <button type="button" class="block w-full py-2 text-sm font-semibold text-zinc-400" onclick={onReset}>
+        Restaurar ajustes de fábrica
+      </button>
+      <button type="button" class="block w-full py-2 text-sm font-semibold text-red-500" onclick={onClearHistory}>
+        Borrar historial de caja
+      </button>
+    </div>
+  {/if}
 </section>

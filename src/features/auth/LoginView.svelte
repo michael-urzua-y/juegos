@@ -3,10 +3,12 @@
   import { formatClock, formatLongDate } from '@/shared/lib/format'
   import { dayKeyToDate } from '@/shared/lib/time'
   import Icon from '@/shared/ui/Icon.svelte'
+  import { SALES_MESSAGE, SALES_WHATSAPP } from '@/shared/config'
   import { installPrompt, promptInstall } from '@/shared/platform/install.svelte'
   import PasswordField from '@/shared/ui/PasswordField.svelte'
   import AuthLayout from './components/AuthLayout.svelte'
   import SupportLink from './components/SupportLink.svelte'
+  import { whatsappLink } from './subscription'
 
   let { onSubmit }: { onSubmit: (username: string, password: string) => Promise<void> } = $props()
 
@@ -106,3 +108,15 @@
     <p class="pt-2 text-center text-xs text-white/40">¿Olvidaste tu clave? Pide una nueva a tu proveedor.</p>
   </form>
 </AuthLayout>
+
+<!-- Contacto de ventas: abajo a la derecha, sobre el login -->
+<a
+  href={whatsappLink(SALES_WHATSAPP, SALES_MESSAGE)}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="fixed right-5 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-10 grid size-14 place-items-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/40 transition active:scale-90"
+  aria-label="Escríbenos por WhatsApp para más información"
+  title="Más información por WhatsApp"
+>
+  <Icon name="whatsapp" class="size-8" />
+</a>

@@ -18,6 +18,10 @@ export const LIMITS = {
   maxStoredSessions: 5_000,
 } as const
 
+/** WhatsApp de ventas: botón "más información" en el login. */
+export const SALES_WHATSAPP = '+56 9 4979 0992'
+export const SALES_MESSAGE = 'Hola, quiero más información sobre la app Turnos de Monay Solutions.'
+
 export const CLOCK_TICK_MS = 250
 
 export const ALARM = {

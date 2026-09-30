@@ -24,7 +24,8 @@ export const canUseApp = () => {
 export async function ensureConnected(): Promise<void> {
   const u = auth.me?.user
   if (!u || !canUseApp() || account.ready || account.connecting) return
-  if (resume(u.id)) {
+  // El administrador solo usa el panel de clientes: no tiene datos de turnos que sincronizar.
+  if (u.role === 'admin' || resume(u.id)) {
     account.ready = true
     return
   }
@@ -69,6 +70,22 @@ export async function signOut({ force = false } = {}): Promise<void> {
   account.ready = false
   clearLocalData()
   setMe(null)
+}
+
+/**
+ * Cerrar sesión desde la interfaz: confirma y, si no se pudieron guardar los cambios,
+ * pregunta antes de cerrar igual (se perderían).
+ */
+export async function confirmSignOut(): Promise<void> {
+  const client = auth.me?.user.role === 'client'
+  const question = client ? '¿Cerrar sesión? Podrás entrar desde este u otro dispositivo.' : '¿Cerrar sesión?'
+  if (!confirm(question)) return
+  try {
+    await signOut()
+  } catch (e) {
+    const msg = e instanceof ApiError ? e.message : 'No se pudo cerrar sesión.'
+    if (confirm(`${msg}\n\n¿Cerrar sesión igual? Los cambios sin guardar se perderán.`)) await signOut({ force: true })
+  }
 }
 
 /** Revisa el estado de la cuenta al volver a la app, al recuperar conexión y cada 5 minutos. */
