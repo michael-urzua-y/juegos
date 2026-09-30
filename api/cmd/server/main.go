@@ -25,6 +25,7 @@ import (
 
 func main() {
 	healthcheck := flag.Bool("healthcheck", false, "consulta /api/health y termina (para Docker)")
+	resetUser := flag.String("reset-password", "", "genera una clave temporal para ese usuario, la muestra y termina")
 	flag.Parse()
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -35,6 +36,13 @@ func main() {
 	}
 	if *healthcheck {
 		os.Exit(runHealthcheck(cfg.Addr))
+	}
+	if *resetUser != "" {
+		if err := resetPassword(cfg, *resetUser); err != nil {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+			os.Exit(1)
+		}
+		return
 	}
 	if err := run(cfg, log); err != nil {
 		log.Error("el servidor se detuvo", "err", err)
@@ -84,33 +92,78 @@ func run(cfg config.Config, log *slog.Logger) error {
 	return nil
 }
 
-// ensureAdmin crea el primer administrador desde ADMIN_USERNAME/ADMIN_PASSWORD si no existe ninguno.
-// Esa clave queda marcada como temporal: el primer ingreso obliga a cambiarla.
+// ensureAdmin crea el primer administrador si no existe ninguno (solo la primera vez).
+// Usuario: ADMIN_USERNAME (o "admin"). Clave: ADMIN_PASSWORD, o una temporal aleatoria que se
+// muestra una única vez en el registro. En ambos casos el primer ingreso obliga a cambiarla.
 func ensureAdmin(ctx context.Context, st *store.Store, cfg config.Config, log *slog.Logger) error {
 	n, err := st.CountAdmins(ctx)
 	if err != nil || n > 0 {
 		return err
 	}
 	username := strings.ToLower(strings.TrimSpace(cfg.AdminUsername))
-	if username == "" || cfg.AdminPassword == "" {
-		log.Warn("no hay administrador: define ADMIN_USERNAME y ADMIN_PASSWORD y reinicia")
-		return nil
+	if username == "" {
+		username = "admin"
 	}
-	if err := auth.ValidateNewPassword(cfg.AdminPassword); err != nil {
+	password := cfg.AdminPassword
+	generated := password == ""
+	if generated {
+		if password, err = auth.TempPassword(); err != nil {
+			return err
+		}
+	} else if err := auth.ValidateNewPassword(password); err != nil {
 		return fmt.Errorf("ADMIN_PASSWORD: %w", err)
 	}
-	hash, err := auth.Hash(cfg.AdminPassword)
+	hash, err := auth.Hash(password)
 	if err != nil {
 		return err
 	}
-	_, err = st.CreateUser(ctx, store.User{
+	if _, err := st.CreateUser(ctx, store.User{
 		Username: username, DisplayName: "Administrador", Role: store.RoleAdmin,
 		PasswordHash: hash, MustChangePassword: true,
-	})
-	if err == nil {
-		log.Info("administrador creado", "user", username)
+	}); err != nil {
+		return err
 	}
-	return err
+	if generated {
+		// Única vez que se muestra: se lee con `docker compose logs turnos-api`.
+		fmt.Printf("\n  Administrador creado → usuario: %s · clave temporal: %s\n  Al entrar te pedirá cambiarla.\n\n", username, password)
+	}
+	log.Info("administrador creado", "user", username)
+	return nil
+}
+
+// resetPassword deja una clave temporal nueva para un usuario y cierra sus sesiones.
+// Pensado para el administrador que olvidó su clave: docker exec turnos-api /server -reset-password <usuario>
+func resetPassword(cfg config.Config, username string) error {
+	database, err := db.Open(cfg.DBPath)
+	if err != nil {
+		return err
+	}
+	defer database.Close()
+	st := store.New(database)
+	ctx := context.Background()
+	u, err := st.UserByUsername(ctx, strings.ToLower(strings.TrimSpace(username)))
+	if errors.Is(err, store.ErrNotFound) {
+		return fmt.Errorf("no existe el usuario %q", username)
+	}
+	if err != nil {
+		return err
+	}
+	temp, err := auth.TempPassword()
+	if err != nil {
+		return err
+	}
+	hash, err := auth.Hash(temp)
+	if err != nil {
+		return err
+	}
+	if err := st.SetPassword(ctx, u.ID, hash, true); err != nil {
+		return err
+	}
+	if err := st.DeleteUserSessions(ctx, u.ID); err != nil {
+		return err
+	}
+	fmt.Printf("Usuario: %s\nClave temporal: %s\nAl entrar te pedirá cambiarla.\n", u.Username, temp)
+	return nil
 }
 
 // maintenance limpia sesiones abandonadas y respalda la base una vez al día.

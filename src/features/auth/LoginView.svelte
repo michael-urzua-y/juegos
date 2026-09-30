@@ -3,6 +3,7 @@
   import { formatClock, formatLongDate } from '@/shared/lib/format'
   import { dayKeyToDate } from '@/shared/lib/time'
   import Icon from '@/shared/ui/Icon.svelte'
+  import { installPrompt, promptInstall } from '@/shared/platform/install.svelte'
   import PasswordField from '@/shared/ui/PasswordField.svelte'
   import AuthLayout from './components/AuthLayout.svelte'
   import SupportLink from './components/SupportLink.svelte'
@@ -93,6 +94,15 @@
         <Icon name="lock" />Ingresar
       {/if}
     </button>
+    {#if installPrompt.available}
+      <button
+        type="button"
+        class="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-white/8 font-bold text-orange-400 ring-1 ring-white/10 active:scale-[0.98]"
+        onclick={promptInstall}
+      >
+        <Icon name="download" />Instalar app en el celular
+      </button>
+    {/if}
     <p class="pt-2 text-center text-xs text-white/40">¿Olvidaste tu clave? Pide una nueva a tu proveedor.</p>
   </form>
 </AuthLayout>

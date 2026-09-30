@@ -85,11 +85,13 @@ Para un servidor que ya tiene un nginx en Docker atendiendo los puertos 80/443 (
 
 ```bash
 git clone https://github.com/michael-urzua-y/juegos.git /opt/juegos && cd /opt/juegos
-cp deploy/api.env.example deploy/api.env && chmod 600 deploy/api.env   # completar
+cp deploy/api.env.example deploy/api.env && chmod 600 deploy/api.env   # opcional
 docker compose -f deploy/docker-compose.prod.yml up -d --build
 cp deploy/nginx/turnos.conf /opt/taller/nginx/conf.d/
 docker exec hyh-nginx nginx -t && docker exec hyh-nginx nginx -s reload
 ```
+
+Primer ingreso: si no definiste `ADMIN_PASSWORD`, la clave temporal del administrador aparece en `docker compose -f deploy/docker-compose.prod.yml logs turnos-api`. ¿Olvidaste la clave? `docker exec turnos-api /server -reset-password <usuario>`.
 
 Actualizar: `git pull && docker compose -f deploy/docker-compose.prod.yml up -d --build`.
 Respaldos: `docker run --rm -v juegos_turnos-data:/data alpine ls /data/backups` (conviene copiarlos fuera del servidor).
