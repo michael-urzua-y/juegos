@@ -13,6 +13,8 @@ export default defineConfig({
     __APP_ICON__: JSON.stringify(iconUrl('pwa', 192)),
     __APP_BADGE__: JSON.stringify(iconUrl('pwa', 64)),
   },
+  // En desarrollo, /api va a la API local (cd api && go run ./cmd/server)
+  server: { proxy: { '/api': 'http://localhost:8081' } },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
@@ -38,11 +40,13 @@ export default defineConfig({
         background_color: ICON_BACKGROUND,
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,webmanifest}'],
         // La imagen fuente de los íconos (1024 px) no hace falta en el celular
         globIgnores: ['icon.png'],
         // Maneja el toque en la notificación para volver a la app
         importScripts: ['sw-notify.js'],
+        // La API nunca pasa por la caché del service worker
+        navigateFallbackDenylist: [/^\/api\//],
       },
     }),
   ],

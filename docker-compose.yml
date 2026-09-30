@@ -1,31 +1,49 @@
-# Uso:
-#   docker compose up -d --build                       → http://localhost:8080
+# Uso local:
+#   docker compose up -d --build        → http://localhost:8080
+# La primera vez entra con admin / cambiar-esta-clave (te pedirá cambiarla).
+#
 #   DOMAIN=turnos.midominio.cl docker compose --profile https up -d --build
-#                                                      → https con certificado automático (Caddy)
+#                                        → https con certificado automático (Caddy)
+
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
 
 services:
-  web:
+  turnos-web:
+    <<: *hardening
     build: .
     image: turnos-inflables:latest
-    restart: unless-stopped
+    depends_on:
+      - turnos-api
     ports:
       - '${PORT:-8080}:8080'
-    read_only: true
     tmpfs:
       - /tmp
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
+
+  turnos-api:
+    <<: *hardening
+    build: ./api
+    image: turnos-api:latest
+    environment:
+      # Solo para desarrollo local por HTTP; en producción la cookie exige HTTPS
+      COOKIE_SECURE: 'false'
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: cambiar-esta-clave
+    volumes:
+      - turnos-data:/data
 
   # HTTPS es obligatorio para instalar la PWA en el celular (excepto en localhost).
-  # Requiere un dominio apuntando a este servidor y los puertos 80/443 abiertos.
   caddy:
     image: caddy:2-alpine
     profiles: [https]
     restart: unless-stopped
     depends_on:
-      - web
+      - turnos-web
     ports:
       - '80:80'
       - '443:443'
@@ -38,5 +56,6 @@ services:
       - caddy_config:/config
 
 volumes:
+  turnos-data:
   caddy_data:
   caddy_config:

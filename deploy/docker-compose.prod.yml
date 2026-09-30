@@ -1,27 +1,52 @@
 # Producción detrás de un nginx existente (sin puertos publicados).
-# El contenedor se une a la red del proxy y este lo alcanza por su nombre.
 #
+#   cp deploy/api.env.example deploy/api.env   # completar y proteger (chmod 600)
 #   docker compose -f deploy/docker-compose.prod.yml up -d --build
 #
-# PROXY_NETWORK: red Docker del nginx existente (por defecto la del VPS actual).
+# Redes:
+#  - turnos-web está en la red del nginx existente (PROXY_NETWORK) y en la red interna.
+#  - turnos-api está SOLO en la red interna: desde fuera únicamente se llega a ella por /api.
+# Los servicios NO se llaman "web" ni "api": en la red compartida, Docker registra el nombre del
+# servicio como alias y chocaría con el "web" del sitio existente.
+
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
 
 services:
-  web:
+  turnos-web:
+    <<: *hardening
     build: ..
     image: turnos-inflables:latest
     container_name: turnos-web
-    restart: unless-stopped
-    read_only: true
+    depends_on:
+      - turnos-api
     tmpfs:
       - /tmp
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
     networks:
+      - internal
       - proxy
 
+  turnos-api:
+    <<: *hardening
+    build: ../api
+    image: turnos-api:latest
+    container_name: turnos-api
+    env_file: api.env
+    volumes:
+      - turnos-data:/data
+    networks:
+      - internal
+
+volumes:
+  turnos-data:
+
 networks:
+  internal:
   proxy:
     name: ${PROXY_NETWORK:-taller_default}
     external: true

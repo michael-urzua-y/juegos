@@ -2,7 +2,7 @@ import { LIMITS } from '@/shared/config'
 import { cleanText } from '@/shared/lib/sanitize'
 import { readJSON, writeJSON } from '@/shared/lib/storage'
 import { MINUTE } from '@/shared/lib/time'
-import { defaultSettings, normalizePlans, parseSettings, type Plan, type Settings } from './schema'
+import { normalizePlans, parseSettings, type Plan, type Settings } from './schema'
 
 const STORAGE_KEY = 'settings'
 
@@ -18,9 +18,15 @@ export function persistSettings(): void {
   $effect(() => writeJSON(STORAGE_KEY, settings))
 }
 
-export function resetSettings(): void {
-  Object.assign(settings, defaultSettings())
+/** Copia simple de los ajustes, para sincronizar. */
+export const exportSettings = (): Settings => $state.snapshot(settings)
+
+/** Reemplaza los ajustes con datos externos, validados. Sin datos válidos, vuelven a los de fábrica. */
+export function importSettings(raw: unknown): void {
+  Object.assign(settings, parseSettings(raw))
 }
+
+export const resetSettings = () => importSettings(null)
 
 export function addGame(name: string): boolean {
   const game = cleanText(name, LIMITS.gameMaxLength)

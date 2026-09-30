@@ -41,9 +41,16 @@ export function inPlay(): { count: number; amount: number } {
   return { count: active.length, amount: active.reduce((sum, s) => sum + s.price, 0) }
 }
 
-export function clearArchive(): void {
+/** Copia simple del archivo de totales, para sincronizar. */
+export const exportArchive = (): Record<string, DayStats> => $state.snapshot(archive)
+
+/** Reemplaza el archivo de totales con datos externos, validados. */
+export function importArchive(raw: unknown): void {
   for (const key of Object.keys(archive)) delete archive[key]
+  Object.assign(archive, parseArchive(raw))
 }
+
+export const clearArchive = () => importArchive(null)
 
 /** Guarda el archivo en cada cambio. Llamar dentro de un $effect.root. */
 export function persistArchive(): void {

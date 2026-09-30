@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { auth, isAdmin, subscriptionBadge } from '@/features/auth'
   import { clearArchive, statsOfDay } from '@/features/reports'
   import { clearHistory } from '@/features/sessions'
   import { activePlans, resetSettings, settings } from '@/features/settings'
@@ -15,6 +16,10 @@
   let { onOpen }: { onOpen: (page: AdminPage) => void } = $props()
 
   const today = $derived(statsOfDay(dayKey(clock.now)))
+  const me = $derived(auth.me)
+  const accountDetail = $derived(
+    me ? `${me.user.username} · ${subscriptionBadge(me.user, dayKey(clock.now)).label}` : '',
+  )
   const alarmDetail = $derived(
     [
       settings.voice && 'Voz',
@@ -53,6 +58,33 @@
         <span class="text-sm opacity-90">Ícono propio, pantalla completa y sin internet</span>
       </span>
     </button>
+  {/if}
+
+  {#if me}
+    <div class="card divide-y divide-zinc-100 overflow-hidden p-0! dark:divide-zinc-800">
+      <MenuItem
+        icon="user"
+        color="bg-zinc-700"
+        label={me.user.displayName}
+        detail={accountDetail}
+        onclick={() => onOpen('account')}
+      />
+    </div>
+  {/if}
+
+  {#if isAdmin()}
+    <div>
+      <SectionTitle class="mb-2 px-1">Monay Solutions</SectionTitle>
+      <div class="card divide-y divide-zinc-100 overflow-hidden p-0! dark:divide-zinc-800">
+        <MenuItem
+          icon="users"
+          color="bg-sky-600"
+          label="Clientes"
+          detail="Suscripciones, pagos, claves y dispositivos"
+          onclick={() => onOpen('clients')}
+        />
+      </div>
+    </div>
   {/if}
 
   <div>

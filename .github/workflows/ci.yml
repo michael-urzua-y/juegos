@@ -18,9 +18,26 @@ jobs:
       - run: npm run verify
       - run: npm run build
 
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
+      - run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      - run: go test ./...
+      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
   docker:
     runs-on: ubuntu-latest
-    needs: verify
+    needs: [verify, api]
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t turnos-inflables .
+      - run: docker build -t turnos-api ./api

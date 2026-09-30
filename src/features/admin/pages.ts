@@ -1,1 +1,1 @@
-export type AdminPage = 'cash' | 'games' | 'plans' | 'alarm'
+export type AdminPage = 'cash' | 'games' | 'plans' | 'alarm' | 'account' | 'clients'

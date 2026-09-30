@@ -88,6 +88,10 @@ def main() -> None:
     logo = logo.crop(logo.getbbox())
     logo.save(ROOT / "branding" / "monay-solutions-logo.png")
 
+    # Logo para la pantalla de login (se muestra a ~240 px de ancho; 2x para pantallas densas)
+    small = logo.resize((480, round(logo.height * 480 / logo.width)), Image.LANCZOS)
+    small.save(ROOT / "public" / "logo.webp", quality=88, method=6)
+
     # Ícono cuadrado: el logo debe caber en la zona segura circular (80 %) de los íconos maskable
     size = 1024
     icon = background(size).convert("RGBA")

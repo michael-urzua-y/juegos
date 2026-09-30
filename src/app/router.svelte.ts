@@ -12,6 +12,8 @@ interface Route {
   title: string
   tab: Tab
   parent?: RouteId
+  /** Usa todo el ancho en pantallas grandes (tablas). */
+  wide?: boolean
 }
 
 export const ROUTES: Record<RouteId, Route> = {
@@ -22,6 +24,8 @@ export const ROUTES: Record<RouteId, Route> = {
   'admin/games': { path: '/admin/juegos', title: 'Juegos', tab: 'admin', parent: 'admin' },
   'admin/plans': { path: '/admin/tiempos', title: 'Tiempos y precios', tab: 'admin', parent: 'admin' },
   'admin/alarm': { path: '/admin/alarma', title: 'Alarma y sonido', tab: 'admin', parent: 'admin' },
+  'admin/account': { path: '/admin/cuenta', title: 'Mi cuenta', tab: 'admin', parent: 'admin' },
+  'admin/clients': { path: '/admin/clientes', title: 'Clientes', tab: 'admin', parent: 'admin', wide: true },
 }
 
 export const TABS: readonly { id: Tab; label: string; icon: IconName }[] = [

@@ -25,3 +25,8 @@ dist-ssr
 
 # Generado por el build (cabeceras nginx)
 .generated
+
+# Secretos del despliegue
+deploy/api.env
+# Base local de la API
+api/.data

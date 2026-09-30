@@ -13,8 +13,10 @@ import {
   takeExpiredSessions,
 } from '@/features/sessions'
 import { persistSettings } from '@/features/settings'
+import { dataFingerprint, noteLocalChange } from '@/features/sync'
 import { startClock } from '@/shared/lib/clock.svelte'
 import { setWakeLock } from '@/shared/platform/wakelock.svelte'
+import { watchAccount } from './account.svelte'
 
 export function bootstrap(): void {
   // El detalle antiguo pasa a totales diarios antes de guardar nada.
@@ -24,12 +26,19 @@ export function bootstrap(): void {
     persistSettings()
     persistSessions()
     persistArchive()
+    // Cualquier cambio en turnos, caja o ajustes se sube al servidor (con espera y reintentos).
+    $effect(() => {
+      const fingerprint = dataFingerprint()
+      untrack(() => noteLocalChange(fingerprint))
+    })
     $effect(() => setWakeLock(hasActiveSessions()))
     $effect(() => {
       const alarms = alarmSessions()
       untrack(() => syncAlarmLoop(alarms))
     })
   })
+
+  watchAccount()
 
   startClock((now) => {
     // Los turnos que terminan pasan a 'alarm' y el ciclo de alarma se encarga del aviso.

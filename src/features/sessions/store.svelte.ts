@@ -98,6 +98,14 @@ export function advanceAll(now: number): { ended: Session[]; warned: Session[] }
   return { ended, warned }
 }
 
+/** Copia simple de los turnos, para sincronizar. */
+export const exportSessions = (): Session[] => $state.snapshot(sessions)
+
+/** Reemplaza los turnos con datos externos (servidor o respaldo), validados como los de localStorage. */
+export function importSessions(raw: unknown): void {
+  sessions.splice(0, sessions.length, ...parseSessions(raw))
+}
+
 /** Guarda los turnos en cada cambio. Llamar dentro de un $effect.root. */
 export function persistSessions(): void {
   $effect(() => writeJSON(STORAGE_KEY, sessions))
