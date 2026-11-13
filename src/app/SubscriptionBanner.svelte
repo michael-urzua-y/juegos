@@ -2,6 +2,7 @@
   import { auth, subscriptionBadge, SupportLink } from '@/features/auth'
   import { clock } from '@/shared/lib/clock.svelte'
   import { dayKey } from '@/shared/lib/time'
+  import { isNative } from '@/shared/platform/native'
   import Icon from '@/shared/ui/Icon.svelte'
 
   // Aviso a clientes cuya suscripción vence pronto o está en días de gracia.
@@ -17,9 +18,12 @@
     <p class="flex items-center gap-2 font-bold">
       <Icon name="alert" class="size-5 shrink-0" />Tu suscripción: {badge.label.toLowerCase()}
     </p>
-    <SupportLink
-      contact={me.supportContact}
-      message="Hola, quiero renovar mi suscripción de Turnos ({me.user.username})."
-    />
+    <!-- Play Store no permite invitar a pagar fuera de la app -->
+    {#if !isNative}
+      <SupportLink
+        contact={me.supportContact}
+        message="Hola, quiero renovar mi suscripción de Turnos ({me.user.username})."
+      />
+    {/if}
   </div>
 {/if}

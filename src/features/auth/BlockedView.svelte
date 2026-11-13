@@ -1,6 +1,7 @@
 <script lang="ts">
   import { formatLongDate } from '@/shared/lib/format'
   import { dayKeyToDate } from '@/shared/lib/time'
+  import { isNative } from '@/shared/platform/native'
   import Icon from '@/shared/ui/Icon.svelte'
   import AuthLayout from './components/AuthLayout.svelte'
   import SupportLink from './components/SupportLink.svelte'
@@ -25,11 +26,16 @@
         {:else}
           Tu suscripción no está activa.
         {/if}
-        Tus datos están guardados y vuelven a estar disponibles al renovar.
+        <!-- Play Store no permite invitar a pagar fuera de la app: en Android el texto es neutro -->
+        {isNative
+          ? 'Tus datos están guardados. Comunícate con tu proveedor.'
+          : 'Tus datos están guardados y vuelven a estar disponibles al renovar.'}
       </p>
       <SupportLink
         contact={me.supportContact}
-        message="Hola, quiero renovar mi suscripción de Turnos ({me.user.username})."
+        message={isNative
+          ? `Hola, necesito ayuda con mi cuenta de Turnos (${me.user.username}).`
+          : `Hola, quiero renovar mi suscripción de Turnos (${me.user.username}).`}
       />
     </div>
     <button

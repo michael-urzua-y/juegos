@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { isNative } from '@/shared/platform/native'
   import { auth, ChangePasswordForm, subscriptionBadge, SubscriptionPill, SupportLink } from '@/features/auth'
   import { syncState } from '@/features/sync'
   import { clock } from '@/shared/lib/clock.svelte'
@@ -64,10 +65,13 @@
         <p class="text-sm">
           Vence el <b>{me.user.paidUntil ? formatLongDate(dayKeyToDate(me.user.paidUntil)).toLowerCase() : '—'}</b>.
         </p>
-        <SupportLink
-          contact={me.supportContact}
-          message="Hola, quiero renovar mi suscripción de Turnos ({me.user.username})."
-        />
+        <!-- Play Store no permite invitar a pagar fuera de la app -->
+        {#if !isNative}
+          <SupportLink
+            contact={me.supportContact}
+            message="Hola, quiero renovar mi suscripción de Turnos ({me.user.username})."
+          />
+        {/if}
       </div>
     {/if}
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { isNative } from '@/shared/platform/native'
   import { ApiError } from '@/shared/lib/api'
   import { formatClock, formatLongDate } from '@/shared/lib/format'
   import { dayKeyToDate } from '@/shared/lib/time'
@@ -73,7 +74,9 @@
               ? 'Tu cuenta está suspendida.'
               : `Tu suscripción venció${paidUntil ? ` el ${formatLongDate(dayKeyToDate(paidUntil)).toLowerCase()}` : ''}.`}
           </p>
-          <p class="text-white/70">Para seguir usando la app, renueva tu suscripción.</p>
+          <p class="text-white/70">
+            {isNative ? 'Comunícate con tu proveedor.' : 'Para seguir usando la app, renueva tu suscripción.'}
+          </p>
         {:else}
           <p class="flex items-start gap-2 font-semibold text-red-300">
             <Icon name={error.offline ? 'cloudOff' : 'alert'} class="mt-0.5 size-5 shrink-0" />{error.message}
@@ -109,14 +112,16 @@
   </form>
 </AuthLayout>
 
-<!-- Contacto de ventas: abajo a la derecha, sobre el login -->
-<a
-  href={whatsappLink(SALES_WHATSAPP, SALES_MESSAGE)}
-  target="_blank"
-  rel="noopener noreferrer"
-  class="fixed right-5 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-10 grid size-14 place-items-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/40 transition active:scale-90"
-  aria-label="Escríbenos por WhatsApp para más información"
-  title="Más información por WhatsApp"
->
-  <Icon name="whatsapp" class="size-8" />
-</a>
+<!-- Contacto de ventas: abajo a la derecha, sobre el login (no en Android: Play Store no permite vender por fuera) -->
+{#if !isNative}
+  <a
+    href={whatsappLink(SALES_WHATSAPP, SALES_MESSAGE)}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="fixed right-5 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-10 grid size-14 place-items-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/40 transition active:scale-90"
+    aria-label="Escríbenos por WhatsApp para más información"
+    title="Más información por WhatsApp"
+  >
+    <Icon name="whatsapp" class="size-8" />
+  </a>
+{/if}
