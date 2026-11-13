@@ -1,8 +1,12 @@
 // Mantiene la pantalla encendida mientras se necesite.
 // El navegador suelta el bloqueo al pasar a segundo plano; se recupera al volver.
+// En la app Android lo hace el sistema (KeepAwake) y no se suelta solo.
+
+import { KeepAwake } from '@capacitor-community/keep-awake'
+import { isNative } from './native'
 
 export const wakeLock = $state({
-  supported: typeof navigator !== 'undefined' && 'wakeLock' in navigator,
+  supported: isNative || (typeof navigator !== 'undefined' && 'wakeLock' in navigator),
   active: false,
 })
 
@@ -24,6 +28,12 @@ async function acquire(): Promise<void> {
 }
 
 export function setWakeLock(on: boolean): void {
+  if (isNative) {
+    if (on === wakeLock.active) return
+    wakeLock.active = on
+    void (on ? KeepAwake.keepAwake() : KeepAwake.allowSleep()).catch(() => {})
+    return
+  }
   wanted = on
   if (on) void acquire()
   else void sentinel?.release()

@@ -2,56 +2,63 @@
 import { fileURLToPath } from 'node:url'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ICON_BACKGROUND, iconUrl } from './pwa-assets.config.ts'
 import { securityHeaders } from './config/security.ts'
 
-export default defineConfig({
-  // URLs de los íconos con su huella, para usarlas desde el código (notificaciones)
-  define: {
-    __APP_ICON__: JSON.stringify(iconUrl('pwa', 192)),
-    __APP_BADGE__: JSON.stringify(iconUrl('pwa', 64)),
-  },
-  // En desarrollo, /api va a la API local (cd api && go run ./cmd/server)
-  server: { proxy: { '/api': 'http://localhost:8081' } },
-  resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
-  },
-  plugins: [
-    tailwindcss(),
-    svelte(),
-    securityHeaders(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      // Genera los íconos PNG (192, 512, maskable, apple) desde public/icon.png
-      pwaAssets: { config: true },
-      manifest: {
-        name: 'Turnos Inflables',
-        short_name: 'Turnos',
-        description: 'Controla el tiempo de cada niño en los juegos y recibe una alarma al terminar.',
-        lang: 'es',
-        start_url: '/',
-        scope: '/',
-        display: 'standalone',
-        orientation: 'portrait',
-        theme_color: '#f97316',
-        // Fondo de la pantalla de inicio: el mismo del ícono, para que el logo se vea continuo
-        background_color: ICON_BACKGROUND,
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,webmanifest}'],
-        // La imagen fuente de los íconos (1024 px) no hace falta en el celular
-        globIgnores: ['icon.png'],
-        // Maneja el toque en la notificación para volver a la app
-        importScripts: ['sw-notify.js'],
-        // La API nunca pasa por la caché del service worker
-        navigateFallbackDenylist: [/^\/api\//],
-      },
-    }),
-  ],
-  test: {
-    include: ['src/**/*.test.ts'],
-    environment: 'node',
-  },
+export default defineConfig(({ mode }) => {
+  // `vite build --mode android`: app Android (Capacitor). Sin service worker y con la API en el servidor.
+  const android = mode === 'android'
+  const apiBase = loadEnv(mode, process.cwd(), 'VITE_').VITE_API_BASE ?? ''
+  return {
+    // URLs de los íconos con su huella, para usarlas desde el código (notificaciones)
+    define: {
+      __APP_ICON__: JSON.stringify(iconUrl('pwa', 192)),
+      __APP_BADGE__: JSON.stringify(iconUrl('pwa', 64)),
+    },
+    // En desarrollo, /api va a la API local (cd api && go run ./cmd/server)
+    server: { proxy: { '/api': 'http://localhost:8081' } },
+    resolve: {
+      alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    },
+    plugins: [
+      tailwindcss(),
+      svelte(),
+      securityHeaders({ connect: android && apiBase ? [new URL(apiBase).origin] : [] }),
+      VitePWA({
+        // En la app Android los archivos ya vienen dentro del APK: el service worker sobra
+        disable: android,
+        registerType: 'autoUpdate',
+        // Genera los íconos PNG (192, 512, maskable, apple) desde public/icon.png
+        pwaAssets: { config: true },
+        manifest: {
+          name: 'Turnos Inflables',
+          short_name: 'Turnos',
+          description: 'Controla el tiempo de cada niño en los juegos y recibe una alarma al terminar.',
+          lang: 'es',
+          start_url: '/',
+          scope: '/',
+          display: 'standalone',
+          orientation: 'portrait',
+          theme_color: '#f97316',
+          // Fondo de la pantalla de inicio: el mismo del ícono, para que el logo se vea continuo
+          background_color: ICON_BACKGROUND,
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,webmanifest}'],
+          // La imagen fuente de los íconos (1024 px) no hace falta en el celular
+          globIgnores: ['icon.png'],
+          // Maneja el toque en la notificación para volver a la app
+          importScripts: ['sw-notify.js'],
+          // La API nunca pasa por la caché del service worker
+          navigateFallbackDenylist: [/^\/api\//],
+        },
+      }),
+    ],
+    test: {
+      include: ['src/**/*.test.ts'],
+      environment: 'node',
+    },
+  }
 })

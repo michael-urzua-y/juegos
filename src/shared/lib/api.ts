@@ -1,4 +1,4 @@
-// Cliente de la API (/api, mismo dominio). La sesión viaja en una cookie HttpOnly que
+// Cliente de la API (/api, mismo dominio; en la app Android, VITE_API_BASE). La sesión viaja en una cookie HttpOnly que
 // JavaScript no puede leer; aquí solo se agrega la cabecera anti-CSRF que exige el servidor.
 
 export class ApiError extends Error {
@@ -20,13 +20,15 @@ export class ApiError extends Error {
 }
 
 const TIMEOUT_MS = 15_000
+/** Vacío en la web (mismo dominio); en la app Android, la dirección del servidor (.env.android). */
+const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
 export async function api<T>(method: 'GET' | 'POST' | 'PUT', path: string, body?: unknown): Promise<T> {
   let res: Response
   try {
-    res = await fetch(`/api${path}`, {
+    res = await fetch(`${API_BASE}/api${path}`, {
       method,
-      credentials: 'same-origin',
+      credentials: API_BASE ? 'include' : 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'turnos' },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(TIMEOUT_MS),

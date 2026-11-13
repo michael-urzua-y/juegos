@@ -1,5 +1,8 @@
 // Pitidos generados con Web Audio (sin archivos), voz con SpeechSynthesis y vibración.
-// Todo funciona sin conexión.
+// Todo funciona sin conexión. En la app Android la voz es la del sistema (la WebView no trae SpeechSynthesis).
+
+import { TextToSpeech } from '@capacitor-community/text-to-speech'
+import { isNative } from './native'
 
 let ctx: AudioContext | null = null
 
@@ -63,6 +66,12 @@ function pickVoice(): SpeechSynthesisVoice | null {
 }
 
 export function speak(text: string): void {
+  if (isNative) {
+    void TextToSpeech.stop()
+      .then(() => TextToSpeech.speak({ text, lang: 'es-CL', rate: 1, volume: 1, category: 'playback' }))
+      .catch(() => {})
+    return
+  }
   if (!('speechSynthesis' in window)) return
   speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(text)
@@ -73,7 +82,8 @@ export function speak(text: string): void {
 }
 
 export function stopSpeaking(): void {
-  if ('speechSynthesis' in window) speechSynthesis.cancel()
+  if (isNative) void TextToSpeech.stop().catch(() => {})
+  else if ('speechSynthesis' in window) speechSynthesis.cancel()
 }
 
 /** Chrome ignora la vibración si el usuario aún no tocó la página; se evita la llamada. */

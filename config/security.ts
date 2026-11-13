@@ -26,8 +26,9 @@ const CSP: Record<string, string> = {
 /** Directivas que el navegador ignora en <meta> y solo sirven como cabecera HTTP. */
 const HEADER_ONLY = new Set(['frame-ancestors'])
 
-export function cspString({ forMeta = false } = {}): string {
-  return Object.entries(CSP)
+export function cspString({ forMeta = false, connect = [] as string[] } = {}): string {
+  const csp = { ...CSP, 'connect-src': [CSP['connect-src'], ...connect].join(' ') }
+  return Object.entries(csp)
     .filter(([name]) => !(forMeta && HEADER_ONLY.has(name)))
     .map(([name, value]) => `${name} ${value}`)
     .join('; ')
@@ -63,14 +64,15 @@ const nginxHeaders = () =>
 
 export const NGINX_HEADERS_FILE = '.generated/security-headers.conf'
 
-export function securityHeaders(): Plugin {
+/** `connect`: orígenes extra a los que la página puede llamar (la API en la app Android). */
+export function securityHeaders({ connect = [] as string[] } = {}): Plugin {
   return {
     name: 'security-headers',
     apply: 'build', // En desarrollo Vite inyecta scripts en línea que la CSP bloquearía.
     transformIndexHtml: () => [
       {
         tag: 'meta',
-        attrs: { 'http-equiv': 'Content-Security-Policy', content: cspString({ forMeta: true }) },
+        attrs: { 'http-equiv': 'Content-Security-Policy', content: cspString({ forMeta: true, connect }) },
         injectTo: 'head-prepend',
       },
     ],

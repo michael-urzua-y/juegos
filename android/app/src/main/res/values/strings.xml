@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Turnos Inflables</string>
+    <string name="title_activity_main">Turnos Inflables</string>
+    <string name="package_name">cl.monaysolutions.turnos</string>
+    <string name="custom_url_scheme">cl.monaysolutions.turnos</string>
+</resources>

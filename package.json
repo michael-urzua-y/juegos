@@ -12,9 +12,12 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run check && npm test && npm run format:check"
+    "verify": "npm run check && npm test && npm run format:check",
+    "android:build": "vite build --mode android && cap sync android",
+    "android:open": "cap open android"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tsconfig/svelte": "^5.0.8",
@@ -33,5 +36,12 @@
   "description": "PWA para controlar el tiempo de cada niño en juegos inflables",
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@capacitor-community/keep-awake": "^8.0.1",
+    "@capacitor-community/text-to-speech": "^8.0.2",
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/local-notifications": "^8.3.1"
   }
 }

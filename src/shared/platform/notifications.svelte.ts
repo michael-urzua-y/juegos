@@ -1,22 +1,49 @@
-// Notificaciones del sistema. Son un respaldo: con la app en segundo plano,
+// Notificaciones del sistema. En el navegador son un respaldo: con la app en segundo plano,
 // Chrome puede congelar la página y el aviso llegar tarde o no llegar.
+// En la app Android las alarmas se programan en el sistema (ver features/alarm/scheduled.ts)
+// y aquí solo se gestiona el permiso.
 
-const supported = typeof window !== 'undefined' && 'Notification' in window
+import { LocalNotifications } from '@capacitor/local-notifications'
+import { isNative } from './native'
+
+const webSupported = !isNative && typeof window !== 'undefined' && 'Notification' in window
 
 export const notifications = $state({
-  supported,
-  permission: (supported ? Notification.permission : 'denied') as NotificationPermission,
+  supported: isNative || webSupported,
+  permission: (webSupported ? Notification.permission : 'default') as NotificationPermission,
 })
 
-/** Refleja cambios hechos desde los ajustes de Chrome al volver a la app. */
-if (supported) {
+type NativeState = Awaited<ReturnType<typeof LocalNotifications.checkPermissions>>['display']
+const fromNative = (s: NativeState): NotificationPermission =>
+  s === 'granted' ? 'granted' : s === 'denied' ? 'denied' : 'default'
+
+async function refreshNative(): Promise<void> {
+  try {
+    notifications.permission = fromNative((await LocalNotifications.checkPermissions()).display)
+  } catch {
+    // Sin el plugin (no debería pasar en la app)
+  }
+}
+
+/** Refleja cambios hechos desde los ajustes del celular o de Chrome al volver a la app. */
+if (typeof document !== 'undefined' && notifications.supported) {
+  if (isNative) void refreshNative()
   document.addEventListener('visibilitychange', () => {
-    notifications.permission = Notification.permission
+    if (isNative) void refreshNative()
+    else notifications.permission = Notification.permission
   })
 }
 
 export async function requestNotificationPermission(): Promise<void> {
-  if (!supported || Notification.permission !== 'default') return
+  if (isNative) {
+    try {
+      notifications.permission = fromNative((await LocalNotifications.requestPermissions()).display)
+    } catch {
+      // El usuario cerró el diálogo
+    }
+    return
+  }
+  if (!webSupported || Notification.permission !== 'default') return
   notifications.permission = await Notification.requestPermission()
 }
 
@@ -24,7 +51,7 @@ export async function showNotification(
   title: string,
   options: NotificationOptions & { vibrate?: readonly number[]; renotify?: boolean },
 ): Promise<void> {
-  if (!supported || Notification.permission !== 'granted') return
+  if (!webSupported || Notification.permission !== 'granted') return
   try {
     const reg = await navigator.serviceWorker?.getRegistration()
     if (reg) await reg.showNotification(title, options)
@@ -36,7 +63,12 @@ export async function showNotification(
 
 /** Cierra las notificaciones con esa etiqueta (p. ej. al confirmar la alarma). */
 export async function closeNotifications(tag: string): Promise<void> {
-  if (!supported) return
+  if (isNative) {
+    // Las alarmas ya mostradas por el sistema se quitan al confirmar en la app
+    await LocalNotifications.removeAllDeliveredNotifications().catch(() => {})
+    return
+  }
+  if (!webSupported) return
   try {
     const reg = await navigator.serviceWorker?.getRegistration()
     for (const n of (await reg?.getNotifications({ tag })) ?? []) n.close()
