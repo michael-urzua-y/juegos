@@ -51,6 +51,12 @@ describe('createSession', () => {
     expect(createSession({ name: 'Mateo', game: '', plan }, T0, WARN, 'x')?.note).toBe('')
   })
 
+  it('un turno nuevo es un niño nuevo; al repetir conserva el niño', () => {
+    const plan = { minutes: 5, price: 0 }
+    expect(createSession({ name: 'Emma', game: '', plan }, T0, WARN, 'n1')?.kidId).toBe('n1')
+    expect(createSession({ name: 'Emma', game: '', plan, kidId: 'n1' }, T0, WARN, 'n2')?.kidId).toBe('n1')
+  })
+
   it('rechaza minutos inválidos y limita precios', () => {
     expect(createSession({ name: 'Leo', game: '', plan: { minutes: 0, price: 0 } }, T0, WARN, 'x')).toBeNull()
     expect(createSession({ name: 'Leo', game: '', plan: { minutes: 5, price: -50 } }, T0, WARN, 'x')?.price).toBe(0)

@@ -50,8 +50,6 @@ export function importArchive(raw: unknown): void {
   Object.assign(archive, parseArchive(raw))
 }
 
-export const clearArchive = () => importArchive(null)
-
 /** Guarda el archivo en cada cambio. Llamar dentro de un $effect.root. */
 export function persistArchive(): void {
   $effect(() => writeJSON(STORAGE_KEY, archive))

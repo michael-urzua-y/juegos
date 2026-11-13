@@ -14,6 +14,11 @@ export interface Session {
   name: string
   /** Seña para distinguir niños con el mismo nombre ("polera roja"). Opcional. */
   note: string
+  /**
+   * Identifica al niño en la caja: cada turno nuevo es un niño distinto (aunque se llame igual)
+   * y "Repetir" conserva el del turno original. Vacío en turnos antiguos (se usa nombre y nota).
+   */
+  kidId: string
   game: string
   /** Minutos contratados en total (incluye extensiones). */
   minutes: number
@@ -42,6 +47,8 @@ export const STATUS_LABEL: Record<SessionStatus, string> = {
 export interface NewSessionInput {
   name: string
   note?: string
+  /** Niño de un turno anterior ("Repetir"); sin él, el turno es de un niño nuevo. */
+  kidId?: string
   game: string
   plan: Plan
 }
@@ -55,6 +62,7 @@ export function createSession(input: NewSessionInput, now: number, warnMs: numbe
     id,
     name,
     note: cleanText(input.note, LIMITS.noteMaxLength),
+    kidId: cleanId(input.kidId) || id,
     game: cleanText(input.game, LIMITS.gameMaxLength),
     minutes,
     price: clampInt(input.plan.price, 0, LIMITS.priceMax, 0),
@@ -68,6 +76,8 @@ export function createSession(input: NewSessionInput, now: number, warnMs: numbe
 }
 
 export const isActive = (s: Session) => s.status !== 'done'
+
+const cleanId = (v: unknown) => (typeof v === 'string' && v.length <= 64 ? v : '')
 
 type Kid = Pick<Session, 'name' | 'note'>
 
@@ -184,6 +194,7 @@ export function parseSession(raw: unknown): Session | null {
     id,
     name,
     note: cleanText(raw.note, LIMITS.noteMaxLength),
+    kidId: cleanId(raw.kidId),
     game: cleanText(raw.game, LIMITS.gameMaxLength),
     minutes,
     price: clampInt(raw.price, 0, LIMITS.priceMax * 10, 0),

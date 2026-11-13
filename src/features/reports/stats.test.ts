@@ -13,10 +13,12 @@ const s = (
   name = id,
   minutes = 10,
   note = '',
+  kidId = '',
 ): Session => ({
   id,
   name,
   note,
+  kidId,
   game,
   minutes,
   price,
@@ -43,7 +45,17 @@ describe('summarize', () => {
     expect(r.kids).toBe(2) // "Mateo" y "mateo" son el mismo niño
   })
 
-  it('la nota distingue a niños con el mismo nombre', () => {
+  it('cada turno nuevo es un niño distinto aunque se llame igual; Repetir conserva al niño', () => {
+    const list = [
+      s('e1', NOW, 'Castillo', 1000, 'Emma', 10, '', 'e1'),
+      s('e2', NOW, 'Tobogán', 1000, 'Emma', 10, '', 'e2'),
+      s('e3', NOW, 'Tobogán', 1000, 'Emma', 10, '', 'e1'), // repetición del primer turno
+      s('m1', NOW, 'Tobogán', 1000, 'Marcela', 10, '', 'm1'),
+    ]
+    expect(summarize(list).kids).toBe(3)
+  })
+
+  it('turnos antiguos sin kidId: la nota distingue a niños con el mismo nombre', () => {
     const twins = [
       s('x', NOW, '', 1000, 'Mateo', 10, 'polera roja'),
       s('y', NOW, '', 1000, 'Mateo', 10, 'polera azul'),

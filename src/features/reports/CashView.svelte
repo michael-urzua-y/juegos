@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { displayName, NoteTag, removeSession, type Session } from '@/features/sessions'
+  import { NoteTag, type Session } from '@/features/sessions'
   import { clock } from '@/shared/lib/clock.svelte'
   import { formatClock, formatLongDate, formatMoney, plural } from '@/shared/lib/format'
   import { dayKey, dayKeyToDate } from '@/shared/lib/time'
   import Calendar from '@/shared/ui/Calendar.svelte'
   import Icon from '@/shared/ui/Icon.svelte'
-  import IconButton from '@/shared/ui/IconButton.svelte'
   import SectionTitle from '@/shared/ui/SectionTitle.svelte'
   import { daysWithData, inPlay, isArchived, sessionsOfDay, statsOfDay } from './store.svelte'
 
@@ -19,10 +18,6 @@
   const maxAmount = $derived(Math.max(1, ...stats.byGame.map((g) => g.amount)))
   const label = $derived(selected === today ? 'Hoy' : formatLongDate(dayKeyToDate(selected)))
   const playing = $derived(inPlay())
-
-  function onRemove(s: Session) {
-    if (confirm(`¿Eliminar el turno de ${displayName(s)}? Se descontará de la caja.`)) removeSession(s.id)
-  }
 </script>
 
 <section class="space-y-4">
@@ -108,7 +103,6 @@
                 <Icon name="repeat" class="size-4" />Repetir
               </button>
             {/if}
-            <IconButton icon="trash" label="Eliminar turno de {s.name}" onclick={() => onRemove(s)} />
           </li>
         {/each}
       </ul>

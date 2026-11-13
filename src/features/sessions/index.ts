@@ -8,7 +8,6 @@ export {
   activeSessions,
   advanceAll,
   alarmSessions,
-  clearHistory,
   exportSessions,
   extend,
   finish,
@@ -16,7 +15,6 @@ export {
   hasActiveSessions,
   importSessions,
   persistSessions,
-  removeSession,
   sessions,
   takeExpiredSessions,
 } from './store.svelte'

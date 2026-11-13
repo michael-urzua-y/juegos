@@ -36,8 +36,9 @@ export function summarize(list: readonly Session[]): DayStats {
     stats.total += s.price
     stats.minutes += s.minutes
     stats.sessions++
-    // Mismo niño aunque cambie mayúscula o tilde; la nota separa a dos con el mismo nombre
-    kids.add(foldText(`${s.name}|${s.note}`))
+    // Cada turno nuevo es un niño (aunque se llame igual); "Repetir" conserva el mismo.
+    // Turnos antiguos sin kidId: mismo nombre y nota = mismo niño.
+    kids.add(s.kidId ? `id:${s.kidId}` : foldText(`${s.name}|${s.note}`))
     const game = s.game || NO_GAME
     const g = games.get(game) ?? { game, count: 0, amount: 0 }
     g.count++

@@ -67,20 +67,12 @@ export function finishAllAlarms(): void {
   for (const s of alarmSessions()) finishSession(s, now)
 }
 
-export function removeSession(id: string): void {
-  const i = sessions.findIndex((s) => s.id === id)
-  if (i >= 0) sessions.splice(i, 1)
-}
-
 /** Deja solo los turnos que cumplen `keep`. */
 function retain(keep: (s: Session) => boolean): Session[] {
   const removed = sessions.filter((s) => !keep(s))
   if (removed.length) sessions.splice(0, sessions.length, ...sessions.filter(keep))
   return removed
 }
-
-/** Borra el detalle de todos los turnos terminados. */
-export const clearHistory = () => void retain(isActive)
 
 /** Quita y devuelve los turnos terminados que ya pasaron el período de detalle. */
 export const takeExpiredSessions = (now: number) => retain((s) => !isExpired(s, now))

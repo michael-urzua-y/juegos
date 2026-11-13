@@ -1,7 +1,6 @@
 <script lang="ts">
   import { auth, isAdmin, subscriptionBadge } from '@/features/auth'
-  import { clearArchive, statsOfDay } from '@/features/reports'
-  import { clearHistory } from '@/features/sessions'
+  import { statsOfDay } from '@/features/reports'
   import { activePlans, resetSettings, settings } from '@/features/settings'
   import { clock } from '@/shared/lib/clock.svelte'
   import { formatMoney, plural } from '@/shared/lib/format'
@@ -34,14 +33,6 @@
     if (!confirm('¿Restaurar juegos, tiempos, precios y alarma a los valores de fábrica?')) return
     resetSettings()
     toast('Ajustes restaurados')
-  }
-
-  function onClearHistory() {
-    if (!confirm('¿Borrar todo el historial de caja? Los niños que están jugando se mantienen. No se puede deshacer.'))
-      return
-    clearHistory()
-    clearArchive()
-    toast('Historial borrado')
   }
 </script>
 
@@ -133,9 +124,6 @@
     <div class="space-y-1 pt-2 text-center">
       <button type="button" class="block w-full py-2 text-sm font-semibold text-zinc-400" onclick={onReset}>
         Restaurar ajustes de fábrica
-      </button>
-      <button type="button" class="block w-full py-2 text-sm font-semibold text-red-500" onclick={onClearHistory}>
-        Borrar historial de caja
       </button>
     </div>
   {/if}

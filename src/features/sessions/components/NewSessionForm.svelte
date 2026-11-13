@@ -7,7 +7,7 @@
   import { requestNotificationPermission } from '@/shared/platform/notifications.svelte'
   import Icon from '@/shared/ui/Icon.svelte'
   import { toast } from '@/shared/ui/toast.svelte'
-  import { draft } from '../draft.svelte'
+  import { clearRepeated, draft, repeatedKidId } from '../draft.svelte'
   import { displayName } from '../model'
   import { sessions, startSession } from '../store.svelte'
 
@@ -23,7 +23,8 @@
 
   function submit(e: SubmitEvent) {
     e.preventDefault()
-    if (!plan || !startSession({ name: draft.name, note: draft.note, game: draft.game, plan })) {
+    const kidId = repeatedKidId()
+    if (!plan || !startSession({ name: draft.name, note: draft.note, game: draft.game, plan, kidId })) {
       input?.focus()
       return
     }
@@ -31,6 +32,7 @@
     toast(`${displayName({ name: draft.name.trim(), note: draft.note.trim() })} empezó · ${plan.minutes} min`)
     draft.name = ''
     draft.note = ''
+    clearRepeated()
     input?.blur()
   }
 </script>
