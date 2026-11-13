@@ -2,3 +2,6 @@ dist
 .generated
 node_modules
 package-lock.json
+
+# Proyecto Android generado por Capacitor
+android
