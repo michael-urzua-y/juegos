@@ -313,3 +313,34 @@ func TestClientIPIgnoresSpoofableHeaders(t *testing.T) {
 		t.Fatalf("debe usar la IP fijada por el proxy: %s", got)
 	}
 }
+
+func TestDeleteClient(t *testing.T) {
+	e := setup(t)
+	admin := adminReady(e)
+	id, temp := createClient(e, admin, "borrar@juegos.cl")
+	phone := e.device(android)
+	code, body := phone.login("borrar@juegos.cl", temp)
+	expect(t, "login del cliente", code, 200, body)
+
+	// Un cliente no puede eliminar a nadie, y la acción exige la cabecera anti-CSRF
+	code, body = phone.call("DELETE", "/api/admin/users/"+ftoa(id), nil)
+	expect(t, "cliente intenta eliminar", code, 403, body)
+	code, body = admin.do("DELETE", "/api/admin/users/"+ftoa(id), nil, false)
+	expect(t, "eliminar sin cabecera CSRF", code, 403, body)
+
+	code, body = admin.call("DELETE", "/api/admin/users/"+ftoa(id), nil)
+	expect(t, "eliminar cliente", code, 204, body)
+	code, body = phone.call("GET", "/api/me", nil)
+	expect(t, "sesión del cliente eliminado", code, 401, body)
+	code, body = phone.login("borrar@juegos.cl", temp)
+	expect(t, "login de cliente eliminado", code, 401, body)
+	code, body = admin.call("DELETE", "/api/admin/users/"+ftoa(id), nil)
+	expect(t, "eliminar de nuevo", code, 404, body)
+
+	// El administrador no se puede eliminar desde el panel
+	code, body = admin.call("GET", "/api/me", nil)
+	expect(t, "datos del admin", code, 200, body)
+	adminID := body["user"].(map[string]any)["id"].(float64)
+	code, body = admin.call("DELETE", "/api/admin/users/"+ftoa(adminID), nil)
+	expect(t, "eliminar al admin", code, 404, body)
+}

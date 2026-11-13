@@ -197,6 +197,11 @@ func (s *Store) AddPayment(ctx context.Context, id int64, months int, paidUntil 
 	return tx.Commit()
 }
 
+// DeleteUser borra el usuario; sus sesiones, datos y pagos se borran en cascada.
+func (s *Store) DeleteUser(ctx context.Context, id int64) error {
+	return s.exec(ctx, `DELETE FROM users WHERE id = ?`, id)
+}
+
 // ---------- Sesiones ----------
 
 // ActiveSession devuelve la sesión más reciente usada después de idleCutoff.

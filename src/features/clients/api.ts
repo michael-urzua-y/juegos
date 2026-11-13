@@ -29,3 +29,6 @@ export const registerPayment = (id: number, months: number) =>
   api<ClientResult>('POST', path(id, 'payment'), { months })
 
 export const releaseDevice = (id: number) => api<ClientResult>('POST', path(id, 'release'))
+
+/** Elimina al cliente con sus datos y pagos. No se puede deshacer. */
+export const deleteClient = (id: number) => api<void>('DELETE', `/admin/users/${id}`)

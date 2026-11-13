@@ -23,7 +23,7 @@ const TIMEOUT_MS = 15_000
 /** Vacío en la web (mismo dominio); en la app Android, la dirección del servidor (.env.android). */
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
-export async function api<T>(method: 'GET' | 'POST' | 'PUT', path: string, body?: unknown): Promise<T> {
+export async function api<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, body?: unknown): Promise<T> {
   let res: Response
   try {
     res = await fetch(`${API_BASE}/api${path}`, {

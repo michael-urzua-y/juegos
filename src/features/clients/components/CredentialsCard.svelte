@@ -4,8 +4,10 @@
 
   let { username, displayName, password }: { username: string; displayName: string; password: string } = $props()
 
+  // En la app Android la página no está en el sitio: el enlace es el del servidor
+  const siteUrl = import.meta.env.VITE_API_BASE || location.origin
   const message = $derived(
-    `Hola ${displayName}, este es tu acceso a Turnos:\n${location.origin}\n\nUsuario: ${username}\nClave temporal: ${password}\n\nAl entrar te pedirá crear tu propia clave.`,
+    `Hola ${displayName}, este es tu acceso a Turnos:\n${siteUrl}\n\nUsuario: ${username}\nClave temporal: ${password}\n\nAl entrar te pedirá crear tu propia clave.`,
   )
 
   async function copy() {

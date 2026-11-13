@@ -64,6 +64,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /api/admin/users/{id}/suspend", s.admin(s.suspendUser))
 	mux.Handle("POST /api/admin/users/{id}/payment", s.admin(s.registerPayment))
 	mux.Handle("POST /api/admin/users/{id}/release", s.admin(s.releaseDevice))
+	mux.Handle("DELETE /api/admin/users/{id}", s.admin(s.deleteUser))
 
 	return s.recoverer(securityHeaders(csrf(mux)))
 }

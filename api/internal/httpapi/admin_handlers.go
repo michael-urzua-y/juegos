@@ -208,3 +208,18 @@ func (s *Server) releaseDevice(w http.ResponseWriter, r *http.Request, _ store.U
 	s.log.Info("dispositivo liberado", "user", u.Username)
 	s.respondClient(w, r, u.ID, nil)
 }
+
+// deleteUser elimina al cliente con su sesión, sus datos (turnos, caja y ajustes) y sus pagos.
+// No se puede deshacer; el panel pide confirmarlo escribiendo el usuario.
+func (s *Server) deleteUser(w http.ResponseWriter, r *http.Request, _ store.User) {
+	u, ok := s.client(w, r)
+	if !ok {
+		return
+	}
+	if err := s.store.DeleteUser(r.Context(), u.ID); err != nil {
+		s.internalError(w, r, err)
+		return
+	}
+	s.log.Info("cliente eliminado", "user", u.Username)
+	w.WriteHeader(http.StatusNoContent)
+}

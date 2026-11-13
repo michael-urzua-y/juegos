@@ -6,6 +6,7 @@
     pause: '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
     plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
     check: '<path d="M20 6 9 17l-5-5"/>',
+    more: '<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>',
     x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
     stop: '<rect width="14" height="14" x="5" y="5" rx="2"/>',
     timer:
